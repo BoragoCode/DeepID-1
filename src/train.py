@@ -11,7 +11,7 @@ from tensorboardX import SummaryWriter
 from config  import configer
 from dataset import DeepIdData
 from models  import _models
-from utiles  import accuracy
+from utiles  import accuracy, get_time
 
 def initLog():
     logdir = os.path.join('../logfile', configer.modelname)
@@ -63,8 +63,8 @@ def train():
             optimizor.step()
 
             acc_train_batch  = accuracy(y_pred_prob, y)
-            print_log = 'training...    epoch [{:3d}]/[{:3d}] | batch [{:2d}]/[{:2d}] || accuracy: {:2.2%}, loss: {:4.4f}'.\
-                        format(i_epoch+1, configer.n_epoch, i_batch+1, len(trainsets)//configer.batchsize, acc_train_batch, loss_train_batch)
+            print_log = '{} || training...    epoch [{:3d}]/[{:3d}] | batch [{:2d}]/[{:2d}] || accuracy: {:2.2%}, loss: {:4.4f}'.\
+                        format(get_time(), i_epoch+1, configer.n_epoch, i_batch+1, len(trainsets)//configer.batchsize, acc_train_batch, loss_train_batch)
             print(print_log)
 
             acc_train.append(acc_train_batch.numpy())
@@ -79,8 +79,8 @@ def train():
 
             loss_valid_batch = loss(y_pred_prob, y)
             acc_valid_batch  = accuracy(y_pred_prob, y)
-            print_log = 'validating...  epoch [{:3d}]/[{:3d}] | batch [{:2d}]/[{:2d}] || accuracy: {:2.2%}, loss: {:4.4f}'.\
-                        format(i_epoch+1, configer.n_epoch, i_batch+1, len(validsets)//configer.batchsize, acc_valid_batch, loss_valid_batch)
+            print_log = '{} || validating...  epoch [{:3d}]/[{:3d}] | batch [{:2d}]/[{:2d}] || accuracy: {:2.2%}, loss: {:4.4f}'.\
+                        format(get_time(), i_epoch+1, configer.n_epoch, i_batch+1, len(validsets)//configer.batchsize, acc_valid_batch, loss_valid_batch)
             print(print_log)
 
             acc_valid.append(acc_valid_batch.numpy())
@@ -98,15 +98,15 @@ def train():
 
         print_log = '--------------------------------------------------------------------'
         print(print_log)
-        print_log = 'epoch [{:3d}]/[{:3d}] || training: accuracy: {:2.2%}, loss: {:4.4f} | validing: accuracy: {:2.2%}, loss: {:4.4f}'.\
-                        format(i_epoch, configer.n_epoch, acc_train, loss_train, acc_valid, loss_valid)
+        print_log = '{} || epoch [{:3d}]/[{:3d}] || training: accuracy: {:2.2%}, loss: {:4.4f} | validing: accuracy: {:2.2%}, loss: {:4.4f}'.\
+                        format(get_time(), i_epoch, configer.n_epoch, acc_train, loss_train, acc_valid, loss_valid)
         print(print_log)
 
 
         if loss_valid_last > loss_valid:
             torch.save(model, modelpath)
             loss_valid_last = loss_valid
-            print_log = 'model saved!'
+            print_log = '{} || model saved @ {}'.format(get_time(), modelpath)
             print(print_log)
 
 
