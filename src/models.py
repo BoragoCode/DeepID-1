@@ -9,7 +9,7 @@ class VGG16Features(nn.Module):
     
     def __init__(self, in_channels, out_features, batchnorm=True):
         super(VGG16Features, self).__init__()
-        basemodel = tvmdl.vgg11_bn(True) if batchnorm else tvmdl.vgg16(True)
+        basemodel = tvmdl.vgg16_bn(True) if batchnorm else tvmdl.vgg16(True)
         self.features = basemodel.features
         conv1 = self.features[0]
         self.features[0] = nn.Conv2d(in_channels, conv1.out_channels, conv1.kernel_size, conv1.stride)
