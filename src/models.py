@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.functional as F
 import torchvision.models as tvmdl
 
 from config import configer
@@ -41,6 +42,8 @@ class DeepIdModel(nn.Module):
         x2 = self.features(x2)
         x = torch.cat([x1, x2], 1)
         y = self.classifier(x)
+        y = nn.Sigmoid()(y)
+        y = y.view(y.shape[0])
         return y
 
 _models = {

@@ -24,7 +24,7 @@ def initModel():
     if os.path.exists(modelpath):
         model = torch.load(modelpath)
     else:
-        model = _models[configer.modelbase]
+        model = _models[configer.modelname]
         torch.save(model, modelpath)
     return model, modelpath
 
@@ -38,24 +38,25 @@ def train():
     loss = nn.BCELoss()
     optimizor = optim.Adam(model.parameters(), configer.learningrate, betas=(0.9, 0.95), weight_decay=0.0005)
 
-    acc_train_epoch = 0.; acc_valid_epoch = 0.
-    loss_train_epoch = float('inf')
-    loss_valid_epoch = float('inf')
-    loss_valid_epoch_last = float('inf')
+    acc_train = 0.; acc_valid = 0.
+    loss_train = float('inf')
+    loss_valid = float('inf')
+    loss_valid_last = float('inf')
 
 
     for i_epoch in range(configer.n_epoch):
 
-        acc_train_epoch = []; acc_valid_epoch = []
-        loss_train_epoch = []; loss_valid_epoch = []
+        acc_train = []; acc_valid = []
+        loss_train = []; loss_valid = []
 
 
         model.train()
         for i_batch, (X1, X2, y) in enumerate(trainloader):
             X1 = Variable(X1.float())
             X2 = Variable(X2.float())
-            y_pred_prob = model(X1, X2)
+            y  = y.float()
 
+            y_pred_prob = model(X1, X2)
             loss_train_batch = loss(y_pred_prob, y)
             optimizor.zero_grad()
             loss_train_batch.backward() 
@@ -66,11 +67,8 @@ def train():
                         format(i_epoch+1, configer.n_epoch, i_batch+1, len(trainsets)//configer.batchsize, acc_train_batch, loss_train_batch)
             print(print_log)
 
-            acc_train_epoch.append(acc_train_batch.numpy())
-            loss_train_epoch.append(loss_train_batch.detach().numpy())
-        
-        acc_train_epoch = np.mean(np.array(acc_train_epoch))
-        loss_train_epoch = np.mean(np.array(loss_train_epoch))
+            acc_train.append(acc_train_batch.numpy())
+            loss_train.append(loss_train_batch.detach().numpy())
         
         
         model.eval()
@@ -85,26 +83,29 @@ def train():
                         format(i_epoch+1, configer.n_epoch, i_batch+1, len(validsets)//configer.batchsize, acc_valid_batch, loss_valid_batch)
             print(print_log)
 
-            acc_valid_epoch.append(acc_valid_batch.numpy())
-            loss_valid_epoch.append(loss_valid_batch.detach().numpy())
+            acc_valid.append(acc_valid_batch.numpy())
+            loss_valid.append(loss_valid_batch.detach().numpy())
         
 
-        acc_valid_epoch = np.mean(np.array(acc_valid_epoch))
-        loss_valid_epoch = np.mean(np.array(loss_valid_epoch))
+        
+        acc_train = np.mean(np.array(acc_train))
+        loss_train = np.mean(np.array(loss_train))
+        acc_valid = np.mean(np.array(acc_valid))
+        loss_valid = np.mean(np.array(loss_valid))
 
-        logger.add_scalars('accuracy', {'train': acc_train_epoch,  'valid': acc_valid_epoch},  i_epoch)
-        logger.add_scalars('logloss',  {'train': loss_train_epoch, 'valid': loss_valid_epoch}, i_epoch)
+        logger.add_scalars('accuracy', {'train': acc_train,  'valid': acc_valid},  i_epoch)
+        logger.add_scalars('logloss',  {'train': loss_train, 'valid': loss_valid}, i_epoch)
 
         print_log = '--------------------------------------------------------------------'
         print(print_log)
         print_log = 'epoch [{:3d}]/[{:3d}] || training: accuracy: {:2.2%}, loss: {:4.4f} | validing: accuracy: {:2.2%}, loss: {:4.4f}'.\
-                        format(i_epoch, configer.n_epoch, acc_train_epoch, loss_train_epoch, acc_valid_epoch, loss_valid_epoch)
+                        format(i_epoch, configer.n_epoch, acc_train, loss_train, acc_valid, loss_valid)
         print(print_log)
 
 
-        if loss_valid_epoch_last > loss_valid_epoch:
+        if loss_valid_last > loss_valid:
             torch.save(model, modelpath)
-            loss_valid_epoch_last = loss_valid_epoch
+            loss_valid_last = loss_valid
             print_log = 'model saved!'
             print(print_log)
 

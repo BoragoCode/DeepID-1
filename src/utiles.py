@@ -13,4 +13,4 @@ get_time = lambda: time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())
 def accuracy(y_pred, y_true):
     y_pred[y_pred >  0.5] = 1.0
     y_pred[y_pred <= 0.5] = 0.0
-    return torch.mean(y_pred == y_true)
+    return torch.mean((y_pred == y_true).float())
