@@ -1,0 +1,4 @@
+logfile/
+modelfile/
+prepare_data/*.txt
+*/__pycache__/
