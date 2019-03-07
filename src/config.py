@@ -2,9 +2,15 @@ from easydict import EasyDict
 
 configer = EasyDict()
 
-configer.imgsize = (64, 64)
+configer.imgsize = (96, 96)
 configer.use_channels = [_ for _ in range(30, 40)]
 configer.n_channels = len(configer.use_channels)
+configer.n_features = 512
 
 configer.modelbase = 'vgg16_bn'
-configer.modelname = '{}_{}chs'.format(configer.modelbase, configer.use_channels)
+configer.modelname = 'deepid_{}_{}chs_{}feats'.\
+                format(configer.modelbase, configer.use_channels, configer.n_features)
+
+configer.learningrate  = 1e-3
+configer.batchsize     = 64
+configer.n_epoch       = 300

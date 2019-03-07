@@ -5,7 +5,12 @@ import numpy as np
 
 get_intlabel_from_path = lambda path: int(path[path.find('DATA') + len('DATAx/'):].split('/')[0])
 get_obtype_from_path = lambda path: path[path.find('Multi') + len('Multi/'): path.find('Multi') + len('Multi/non-obtructive/')]
-is_pos = lambda pair: get_intlabel_from_path(pair.strip().split(' ')[0])==get_intlabel_from_path(pair.strip().split(' ')[1])
+
+def is_pos_str(pair_str):
+    pair_str = pair_str.strip().split(' ')
+    label1 = get_intlabel_from_path(pair_str[0])
+    label2 = get_intlabel_from_path(pair_str[1])
+    return label1 == label2
 
 def gen_image_list(datadir):
     imgtxt = 'image_list.txt'
@@ -76,17 +81,29 @@ def gen_split(train=0.7, valid=0.2, test=0.1):
     n_valid = int(n_samples * valid)
     n_test  = n_samples - n_train - n_valid
 
-    imglist_valid_test = random.sample(imglist, n_test + n_valid)
-    imglist_test       = random.sample(imglist_valid_test, n_test)
-    imglist_valid      = [pair for pair in imglist_valid_test if pair not in imglist_test]
-    imglist_train      = [pair for pair in imglist if pair not in imglist_valid_test]
+    print('sample train...')
+    index = [_ for _ in range(len(imglist))]
+    index_train = random.sample(index, n_train)
+    imglist_valid_test = [idx for idx in index if idx not in index_train]
+    print('sample valid...')
+    index_valid = random.sample(imglist_valid_test, n_valid)
+    index_test  = [idx for idx in imglist_valid_test if idx not in index_valid]
+    print('sample finished! ')
 
-    n_pos = len([pair for pair in imglist_train if is_pos(pair)])
-    print('train {} | pos: {}, neg: {}'.format(n_train, n_pos, len(imglist_train) - n_pos))
-    n_pos = len([pair for pair in imglist_valid if is_pos(pair)])
-    print('valid {} | pos: {}, neg: {}'.format(n_valid, n_pos, len(imglist_valid) - n_pos))
-    n_pos = len([pair for pair in imglist_test if is_pos(pair)])
-    print('test  {} | pos: {}, neg: {}'.format(n_test,  n_pos, len(imglist_test) - n_pos))
+    n_train = len(index_train)
+    n_valid = len(index_valid)
+    n_test  = len(index_test )
+
+    imglist_train = [imglist[i] for i in index_train]
+    imglist_valid = [imglist[i] for i in index_valid]
+    imglist_test  = [imglist[i] for i in index_test ]
+
+    n_pos = len([pair for pair in imglist_train if is_pos_str(pair)])
+    print('train {} | pos: {}, neg: {}'.format(n_train, n_pos, n_train - n_pos))
+    n_pos = len([pair for pair in imglist_valid if is_pos_str(pair)])
+    print('valid {} | pos: {}, neg: {}'.format(n_valid, n_pos, n_valid - n_pos))
+    n_pos = len([pair for pair in imglist_test  if is_pos_str(pair)])
+    print('test  {} | pos: {}, neg: {}'.format(n_test,  n_pos, n_test  - n_pos))
 
     with open('train.txt', 'w') as f:
         f.writelines(imglist_train)
