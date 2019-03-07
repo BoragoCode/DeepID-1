@@ -10,7 +10,7 @@ from tensorboardX import SummaryWriter
 
 from config  import configer
 from dataset import DeepIdData
-from models  import _models
+from models  import VGGFeatures, DeepIdModel
 from utiles  import accuracy, get_time
 
 def initLog():
@@ -24,7 +24,10 @@ def initModel():
     if os.path.exists(modelpath):
         model = torch.load(modelpath)
     else:
-        model = _models[configer.modelname]
+        model = DeepIdModel(
+            lambda in_channels, out_features: VGGFeatures(in_channels, out_features, configer.modelbase), 
+            configer.n_channels,  configer.n_features
+            )
         torch.save(model, modelpath)
     return model, modelpath
 

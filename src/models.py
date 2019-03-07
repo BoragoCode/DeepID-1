@@ -7,10 +7,8 @@ from config import configer
 
 class VGGFeatures(nn.Module):
     vggs = {
-        'vgg11': tvmdl.vgg11(True),
         'vgg11_bn': tvmdl.vgg11_bn(True),
-        'vgg16': tvmdl.vgg16(True),
-        'vgg16_bn': tvmdl.vgg16_bn(True),
+        # 'vgg11_bn': tvmdl.vgg11_bn(True),
     }
     def __init__(self, in_channels, out_features, type='vgg11_bn'):
         super(VGGFeatures, self).__init__()
@@ -51,12 +49,6 @@ class DeepIdModel(nn.Module):
         y = y.view(y.shape[0])
         return y
 
-_models = {
-    'deepid_vgg11_bn_1chs_128feats':    DeepIdModel(lambda in_channels, out_features: VGGFeatures(in_channels, out_features, 'vgg11_bn'), 1,  128),
-    'deepid_vgg11_10chs_512feats':      DeepIdModel(lambda in_channels, out_features: VGGFeatures(in_channels, out_features, 'vgg11')   , 10, 512),
-    'deepid_vgg16_bn_1chs_128feats':    DeepIdModel(lambda in_channels, out_features: VGGFeatures(in_channels, out_features, 'vgg16_bn'), 1,  128),
-    'deepid_vgg16_10chs_512feats':      DeepIdModel(lambda in_channels, out_features: VGGFeatures(in_channels, out_features, 'vgg16')   , 10, 512),
-}
 
 if __name__ == "__main__":
     x1 = torch.zeros([32, 10, 96, 96])
