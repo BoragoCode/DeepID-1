@@ -28,8 +28,9 @@ def test():
     for i_batch, (X1, X2, y) in enumerate(testloader):
         X1 = Variable(X1.float())
         X2 = Variable(X2.float())
+        y  = y.float()
+        
         y_pred_prob = model(X1, X2)
-
         loss_test_batch = loss(y_pred_prob, y)
         acc_test_batch  = accuracy(y_pred_prob, y)
 

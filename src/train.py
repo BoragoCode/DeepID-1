@@ -78,8 +78,9 @@ def train():
         for i_batch, (X1, X2, y) in enumerate(validloader):
             X1 = Variable(X1.float())
             X2 = Variable(X2.float())
-            y_pred_prob = model(X1, X2)
+            y  = y.float()
 
+            y_pred_prob = model(X1, X2)
             loss_valid_batch = loss(y_pred_prob, y)
             acc_valid_batch  = accuracy(y_pred_prob, y)
             print_log = '{} || validating...  epoch [{:3d}]/[{:3d}] | batch [{:2d}]/[{:2d}] || accuracy: {:2.2%}, loss: {:4.4f}'.\
