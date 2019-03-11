@@ -10,7 +10,7 @@ from tensorboardX import SummaryWriter
 
 from config  import configer
 from dataset import DeepIdData
-from models  import VGGFeatures, DeepIdModel
+from models  import modeldicts
 from utiles  import accuracy, get_time
 
 def initModel():
@@ -18,10 +18,7 @@ def initModel():
     if os.path.exists(modelpath):
         model = torch.load(modelpath)
     else:
-        model = DeepIdModel(
-            lambda in_channels, out_features: VGGFeatures(in_channels, out_features, configer.modelbase), 
-            configer.n_channels,  configer.n_features
-            )
+        model = modeldicts[configer.modelbase]
         torch.save(model, modelpath)
     return model, modelpath
 
@@ -33,12 +30,11 @@ def initLog():
 
 def initOptim(model):
     optimizer = optim.Adam(
-                # model.parameters(),
-                [
-                    {'params': model.features.base.parameters(), 'lr': 0.5*configer.learningrate}, 
-                    {'params': model.features.vect.parameters()},
-                    {'params': model.classifier.parameters()},
-                ],
+                model.parameters(),
+                # [
+                #     {'params': model.features.parameters(), 'lr': 0.5*configer.learningrate}, 
+                #     {'params': model.classifier.parameters()},
+                # ],
                 configer.learningrate, betas=(0.9, 0.95), weight_decay=0.0005)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=configer.stepsize, gamma=configer.gamma)
     return optimizer, scheduler
@@ -55,8 +51,8 @@ def train():
     loss_train = float('inf')
     loss_valid = float('inf')
     loss_valid_last = float('inf')
-    logger.add_graph(model)
 
+    logger.add_graph(model)
     for i_epoch in range(configer.n_epoch):
         scheduler.step()
         lr_epoch = scheduler.get_lr()[-1]
