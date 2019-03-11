@@ -38,7 +38,7 @@ def rotateImage(image, degree_max):
     return image
 
 class DeepIdData(Dataset):
-    def __init__(self, mode='train', crop_max=0.75, rotate_max=180):
+    def __init__(self, mode='train', crop_max=0.75, rotate_max=35):
         self.mode = mode
         self.crop_max = crop_max
         self.rotate_max = rotate_max

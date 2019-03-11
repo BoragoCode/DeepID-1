@@ -13,15 +13,15 @@ class VGGFeatures(nn.Module):
     def __init__(self, in_channels, out_features, type='vgg11_bn'):
         super(VGGFeatures, self).__init__()
         basemodel = self.vggs[type]
-        self.features = basemodel.features
-        conv1 = self.features[0]
-        self.features[0] = nn.Conv2d(in_channels, conv1.out_channels, conv1.kernel_size, conv1.stride)
-        self.classifier = nn.Linear(2*2*512, out_features)
+        self.base = basemodel.features
+        conv1 = self.base[0]
+        self.base[0] = nn.Conv2d(in_channels, conv1.out_channels, conv1.kernel_size, conv1.stride)
+        self.vect = nn.Linear(2*2*512, out_features)
     
     def forward(self, x):
-        x = self.features(x)
+        x = self.base(x)
         x = x.view(x.shape[0], -1)
-        x = self.classifier(x)
+        x = self.vect(x)
         return x
 
 
