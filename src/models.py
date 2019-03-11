@@ -37,23 +37,23 @@ class DeepId2Features(nn.Module):
             nn.BatchNorm2d(40),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),                         # 24 x 24 x 40
-            nn.Conv2d(40, 60, 3, padding=1),            # 12 x 12 x 60
+            nn.Conv2d(40, 60, 3, padding=1),            # 24 x 24 x 60
             nn.BatchNorm2d(60),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),                         #  6 x  6 x 60
+            nn.MaxPool2d(2, 2),                         # 12 x 12 x 60
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(60, 80, 3),                       #  4 x  4 x 80
+            nn.Conv2d(60, 80, 3),                       # 10 x 10 x 80
             nn.BatchNorm2d(80),
             nn.ReLU(inplace=True),
         )
-        self.vect  = nn.Linear(6*6*60+4*4*80, out_features)
+        self.vect  = nn.Linear(12*12*60+10*10*80, out_features)
     
     def forward(self, x):
         x  = self.features(x)
         x_ = self.conv4(x)
-        x  = x.view(x.shape[0],)
-        x_ = x_.view(x.shape[0],)
+        x  = x.view(x.shape[0], -1)
+        x_ = x_.view(x.shape[0], -1)
         x  = torch.cat([x, x_], 1)
         x  = self.vect(x)
         return x
@@ -80,7 +80,7 @@ class DeepIdModel(nn.Module):
         y = self.classifier(x)
         y = nn.Sigmoid()(y)
         y = y.view(y.shape[0])
-        return y
+        return x1, x2, y
 
 modeldicts = {
     'vgg11_bn': DeepIdModel(lambda n1, n2: VGGFeatures(n1, n2, 'vgg11_bn'), configer.n_channels, configer.n_features),

@@ -38,12 +38,14 @@ def rotateImage(image, degree_max):
     return image
 
 class DeepIdData(Dataset):
-    def __init__(self, mode='train', crop_max=0.75, rotate_max=35):
+    
+    def __init__(self, mode='train', crop_max=0.7, rotate_max=45):
         self.mode = mode
         self.crop_max = crop_max
         self.rotate_max = rotate_max
         with open('../prepare_data/{}.txt'.format(mode), 'r') as f:
             self.pairlist = [pair.strip().split(' ') for pair in f.readlines()]
+    
     def __getitem__(self, index):
         path1, path2 = self.pairlist[index]
         image1 = np.load(path1)[:, :, configer.use_channels]

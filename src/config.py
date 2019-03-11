@@ -6,8 +6,8 @@ configer.imgsize = (96, 96)
 configer.use_channels = [30, 31, 32]
 
 configer.n_channels = len(configer.use_channels)
-configer.n_features = 256
-configer.modelbase = 'vgg11_bn'
+configer.n_features = 512
+configer.modelbase = 'deepid2'
 configer.modelname = 'deepid_{}_{}chs_{}feats'.\
                 format(configer.modelbase, configer.n_channels, configer.n_features)
 

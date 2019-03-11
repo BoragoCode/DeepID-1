@@ -11,6 +11,7 @@ from tensorboardX import SummaryWriter
 from config  import configer
 from dataset import DeepIdData
 from models  import modeldicts
+from metric  import DeepIdLoss
 from utiles  import accuracy, get_time
 
 def initModel():
@@ -45,14 +46,15 @@ def train():
     model,  modelpath = initModel()
     optimizer, scheduler = initOptim(model)
     logger = initLog()
-    loss = nn.BCELoss()
+    # loss = nn.BCELoss()
+    loss = DeepIdLoss(999, 1, 65.0)
 
     acc_train = 0.; acc_valid = 0.
     loss_train = float('inf')
     loss_valid = float('inf')
     loss_valid_last = float('inf')
 
-    logger.add_graph(model)
+    # logger.add_graph(model)
     for i_epoch in range(configer.n_epoch):
         scheduler.step()
         lr_epoch = scheduler.get_lr()[-1]
@@ -66,8 +68,9 @@ def train():
             X2 = Variable(X2.float())
             y  = y.float()
 
-            y_pred_prob = model(X1, X2)
-            loss_train_batch = loss(y_pred_prob, y)
+            X1, X2, y_pred_prob = model(X1, X2)
+            loss_train_batch = loss(y, y_pred_prob, X1, X2)
+            # loss_train_batch = loss(y_pred_prob, y)
 
             optimizer.zero_grad()
             loss_train_batch.backward() 
@@ -89,8 +92,10 @@ def train():
             y  = y.float()
 
             y_pred_prob = model(X1, X2)
-            loss_valid_batch = loss(y_pred_prob, y)
+            loss_valid_batch = loss(y, y_pred_prob, X1, X2)
+            # loss_train_batch = loss(y_pred_prob, y)
             acc_valid_batch  = accuracy(y_pred_prob, y)
+
             print_log = '{} || validating...  epoch [{:3d}]/[{:3d}] | batch [{:2d}]/[{:2d}] | lr: {:.6f} || accuracy: {:2.2%}, loss: {:4.4f}'.\
                         format(get_time(), i_epoch+1, configer.n_epoch, i_batch+1, len(validsets)//configer.batchsize, lr_epoch, acc_valid_batch, loss_valid_batch)
             print(print_log)

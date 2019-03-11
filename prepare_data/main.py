@@ -119,7 +119,7 @@ if __name__ == "__main__":
     # gen_image_list(DATADIR)
 
     ## step 2. generate pair samples
-    gen_pair_samples(20000)
+    gen_pair_samples(10000)
 
     ## step 3. split dataset
     gen_split(0.7, 0.2, 0.1)
