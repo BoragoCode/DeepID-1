@@ -30,13 +30,23 @@ class DeepId2Features(nn.Module):
         super(DeepId2Features, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(in_channels, 20, 3, padding=1),   # 96 x 96 x 20
+            nn.BatchNorm2d(20),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),                         # 48 x 48 x 20
             nn.Conv2d(20, 40, 3, padding=1),            # 48 x 48 x 40
+            nn.BatchNorm2d(40),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),                         # 24 x 24 x 40
             nn.Conv2d(40, 60, 3, padding=1),            # 12 x 12 x 60
+            nn.BatchNorm2d(60),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),                         #  6 x  6 x 60
         )
-        self.conv4 = nn.Conv2d(60, 80, 3)               #  4 x  4 x 80
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(60, 80, 3),                       #  4 x  4 x 80
+            nn.BatchNorm2d(80),
+            nn.ReLU(inplace=True),
+        )
         self.vect  = nn.Linear(6*6*60+4*4*80, out_features)
     
     def forward(self, x):
