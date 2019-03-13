@@ -28,7 +28,7 @@ def gen_labels(datadir):
         f.write(name_label)
     f.close()
 
-def gen_classify(datadir, patch_index):
+def gen_classify(datadir, patch_index, ratio=1.2):
     """
     Params:
         patch_index: {int}
@@ -73,7 +73,7 @@ def gen_classify(datadir, patch_index):
         # 生成样本
         if patch_index < 4:
             w = x2 - x1; h = y2 - y1
-            ha = int(h*1.5); wa = int(0.75*ha)                          # h: w = 4: 3
+            ha = int(h*ratio); wa = int(0.75*ha)                          # h: w = 4: 3
 
             if patch_index == 0:
                 x_ct = x1 + w // 2; y_ct = y1 + h // 2                  # 框中心为图片中心
