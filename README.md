@@ -5,18 +5,35 @@ face verification
 
 
 ## Prepare Data
-1. Download database from [Labeled Faces in the Wild](http://vis-www.cs.umass.edu/lfw/index.html).
-2. Extract `lfw.tgz` to `data/`.
+1. Download database from [Labeled Faces in the Wild](http://vis-www.cs.umass.edu/lfw/index.html);
+2. Extract `lfw-deepfunneled.tgz` to `data/`;
+3. Run `detect_lfw()` to detect faces, saved as `data/lfw_detect.txt`;
+5. Run `gen_labels()` to generate labels, saved as `data/lfw_labels.txt`;
+4. Run `gen_classify()` to generate patches, saved as `data/lfw_classify_{0~8}.txt`;
+    1. Only generate 9x3 face patches: 9 positions, 3 scales;
+    3. scale is set as 0.85, 1.0, 1.15;
 
+    ![patches](/images/patches.png)
+    
 ```
 \-- data
-    \-- lfw
+    \-- lfw-deepfunneled
         \-- {name}
             |-- {name}_{xxxx}.jpg
-    |-- pairsDevTest.txt
-    |-- pairsDevTrain.txt
-    |-- pairs.txt
+    \-- view1
+        |-- pairsDevTest.txt
+        |-- pairsDevTrain.txt
+        |-- peopleDevTest.txt
+        |-- peopleDevTrain.txt
+    \-- view2
+        |-- pairs.txt
+        |-- people
+    |-- lfw-names.txt               # name number
+    |-- lfw_detect.txt              # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5
+    |-- lfw_classify_{0~8}.txt      # filepath x1 y1 x2 y2 label
 ```
+
+## Details
 
 ## Reference
 1. [Deep Learning Face Representation from Predicting 10,000 Classes](https://ieeexplore.ieee.org/document/6909640?tp=&arnumber=6909640&refinements%3D4291944822%26sortType%3Ddesc_p_Publication_Year%26ranges%3D2014_2014_p_Publication_Year%26pageNumber%3D284%26rowsPerPage%3D100=).
