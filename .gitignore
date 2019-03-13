@@ -1,4 +1,4 @@
 logfile/
 modelfile/
-prepare_data/*.txt
+data/
 */__pycache__/
