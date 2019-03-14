@@ -31,6 +31,7 @@ def gen_labels(datadir):
 def gen_classify(datadir, patch_index, ratio=1.2):
     """
     Params:
+        datadir:    {str}
         patch_index: {int}
             - 0: 包括发型的脸，当前检测结果框扩大一定比例，截取矩形
             - 1: 以两眼中心为图片中心，截取矩形
@@ -41,17 +42,20 @@ def gen_classify(datadir, patch_index, ratio=1.2):
             - 6：以左嘴角为图片中心，截取正方形
             - 7：以右嘴角为图片中心，截取正方形
             - 8：以鼻尖为图片中心，截取正方形
+        ratio:  {float} 以检测结果框扩张该倍数，作为patch0框
     """
     # 读取检测结果
     detect_txt = os.path.join('/'.join(datadir.split('/')[:-1]), 'lfw_detect.txt')
     with open(detect_txt, 'r') as f:
         detect_list = f.readlines() # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5
+    
     # 读取标签
     labels_txt =  os.path.join('/'.join(datadir.split('/')[:-1]), 'lfw_labels.txt')
     with open(labels_txt, 'r') as f:
         labels_list = f.readlines() # name label
     labels_list = [l.split(' ') for l in labels_list]
     dict_name_label = {name_label[0]: name_label[1].strip() for name_label in labels_list}
+    
     # 保存样本
     classify_dir = os.path.join('/'.join(datadir.split('/')[:-1]), 'lfw_classify')
     if not os.path.exists(classify_dir): os.mkdir(classify_dir)
