@@ -1,5 +1,6 @@
 import os
 import cv2
+from numpy.random import rand
 
 import torch
 from torch.utils.data import Dataset
@@ -125,6 +126,8 @@ class ClassifyWithVerifyDataset(Dataset):
         x2 = w if x2 > w else x2
         y2 = h if y2 > h else y2
         image2 = image2[y1: y2, x1: x2]
+
+        if rand(1) > 0.5: iamge1, image2 = image2, image1
 
         if self.dsize is not None:
             image1 = cv2.resize(image1, self.dsize[::-1])
