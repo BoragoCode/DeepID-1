@@ -15,15 +15,16 @@ else:
 configer.in_channels = 3
 configer.n_classes = 5749
 configer.modelname = 'classify_patch{}_scale{}'.format(configer.patch, configer.scale)
+# configer.modelname = 'classify_verify_patch{}_scale{}'.format(configer.patch, configer.scale)
 configer.modeldir  = '../modelfile/{}'.format(configer.modelname)
 configer.logdir    = '../logfile/{}'.format(configer.modelname)
 
 configer.lrbase = 0.001
-configer.stepsize = 5
+configer.stepsize = 30
 configer.gamma = 0.9
 
 configer.verify_weight = 0.1 
 
-configer.batchsize = 256
+configer.batchsize = 128
 configer.n_epoch = 300
-configer.valid_batch = 200
+configer.valid_batch = 100
