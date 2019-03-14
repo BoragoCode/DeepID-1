@@ -91,7 +91,7 @@ class TotalLoss(nn.Module):
         Returns:
             loss:   {tensor(1)}
         """
-        ident = self.identify(y1_pred, y1_true) + self.identify(y2_pred, y2_true)
+        ident = (self.identify(y1_pred, y1_true) + self.identify(y2_pred, y2_true)) / 2
         verif = self.verify(x1, x2, y1_true==y2_true)
-
-        return ident + self.k * verif
+        total = ident + self.k * verif
+        return ident, verif, total
