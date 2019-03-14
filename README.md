@@ -2,19 +2,22 @@
 face verification
 
 ## Requirement
-
+1. python3.6
+2. pytorch
 
 ## Prepare Data
 1. Download database from [Labeled Faces in the Wild](http://vis-www.cs.umass.edu/lfw/index.html);
 2. Extract `lfw-deepfunneled.tgz` to `data/`;
 3. Run `detect_lfw()` to detect faces, saved as `data/lfw_detect.txt`;
 5. Run `gen_labels()` to generate labels, saved as `data/lfw_labels.txt`;
-4. Run `gen_classify()` to generate patches, saved as `data/lfw_classify_{0~8}.txt`;
+6. Run `gen_classify()` to generate patches, saved as `data/lfw_classify/lfw_classify_{0~8}.txt`;
     1. Only generate 9x3 face patches: 9 positions, 3 scales;
     3. scale is set as 0.85, 1.0, 1.15;
 
     ![patches](/images/patches.png)
     
+7. Run `gen_classify_verify_pairs()` to generate pair samples, saved as `data/lfw_classify_verify/lfw_classify_verify_{0~8}_{train/valid/test}.txt`;
+
 ```
 \-- data
     \-- lfw-deepfunneled
@@ -29,8 +32,8 @@ face verification
         |-- pairs.txt
         |-- people
     |-- lfw-names.txt               # name number
+
     |-- lfw_detect.txt              # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5
-    
     \-- lfw_classify
         |-- lfw_classify_{0~8}.txt  # filepath x1 y1 x2 y2 label
     \-- lfw_classify_verify
