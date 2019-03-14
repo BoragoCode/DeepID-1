@@ -160,10 +160,8 @@ def train_classify_with_verify(configer):
             cur_batch += 1
             if cur_batch % 10 == 0:
                 total_time = duration_time * configer.n_epoch * len(trainset) // configer.batchsize
-                print_log = "{} || Elapsed: {:.4f}h | Left: {:.4f}h | FPS: {:4.2f} \
-                                || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] | cur: [{:6d}] \
-                                || lr: {:.6f} | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
-                            format(getTime(), elapsed_time/3600, (total_time - elapsed_time)/3600, configer.batchsize / duration_time,
+                print_log = "{} || Elapsed: {:.4f}h | Left: {:.4f}h | FPS: {:4.2f} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] | cur: [{:6d}] || lr: {:.6f} | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
+                            format(getTime(), elapsed_time/3600, 2*(total_time - elapsed_time)/3600, configer.batchsize / duration_time,
                                     i_epoch, configer.n_epoch, i_batch, len(trainset) // configer.batchsize, cur_batch, 
                                     scheduler.get_lr()[-1], ident_i, verif_i, total_i, acc_i)
                 print(print_log)

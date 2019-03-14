@@ -79,6 +79,11 @@ class ClassifyDataset(Dataset):
 
 
 class ClassifyWithVerifyDataset(Dataset):
+    scale_ratio = {
+        'S': 0.8,
+        'M': 1.0,
+        'L': 1.2,
+    }
 
     def __init__(self, patch, mode, dsize=None, scale='M'):
 
@@ -111,7 +116,7 @@ class ClassifyWithVerifyDataset(Dataset):
 
     def __getitem__(self, index):
         
-        dict_sample = self.samples_list[0]
+        dict_sample = self.samples_list[index]
 
         image1 = cv2.imread(dict_sample['path1'], cv2.IMREAD_COLOR)
         h, w = image1.shape[: 2]

@@ -64,11 +64,9 @@ class VerifyLoss(nn.Module):
             loss:   {tensor(1)}
         """
         d2 = torch.sum((x1 - x2)**2, dim=1)
-        a = self.m - d2[y==False]
-        b = torch.clamp(self.m - d2[y==False], 0, float('inf'))
         d2[y==False] = torch.clamp(self.m - d2[y==False], 0, float('inf'))
 
-        return torch.mean(d2, dim=1)
+        return torch.mean(d2)
 
 class TotalLoss(nn.Module):
 
