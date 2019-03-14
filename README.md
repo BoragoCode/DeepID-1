@@ -30,7 +30,12 @@ face verification
         |-- people
     |-- lfw-names.txt               # name number
     |-- lfw_detect.txt              # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5
-    |-- lfw_classify_{0~8}.txt      # filepath x1 y1 x2 y2 label
+    
+    \-- lfw_classify
+        |-- lfw_classify_{0~8}.txt  # filepath x1 y1 x2 y2 label
+    \-- lfw_classify_verify
+        |-- lfw_classify_verify_{0~8}_{train/valid/test}.txt  
+                                    # label filepath1 x11 y11 x21 y21 label1 filepath2 x12 y12 x22 y22 label2
 ```
 
 ## Details
