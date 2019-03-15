@@ -167,7 +167,7 @@ def train_classify_with_verify(configer):
                 print(print_log)
 
             # log
-            logger.add_scalar('train_loss', acc_i, cur_batch)
+            logger.add_scalar('train_acc', acc_i, cur_batch)
             logger.add_scalars('train_loss', {'ident': ident_i, 'verif': verif_i, 'total': total_i}, cur_batch)
             logger.add_scalar('loss_param', metric.verify.m, cur_batch)
             logger.add_scalar('lr', scheduler.get_lr()[-1], cur_batch)
@@ -210,4 +210,5 @@ def train_classify_with_verify(configer):
         logger.add_scalar('valid_loss', valid_loss, cur_batch)
 
         if valid_loss < valid_loss_last:
+            valid_loss_last = valid_loss
             model.save()
