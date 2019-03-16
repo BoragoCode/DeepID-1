@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -24,9 +25,6 @@ def iniClassifyModel(in_channels, n_classes, modeldir):
         os.mkdir(modeldir)
         model.save()
     
-    if torch.cuda.is_available():
-        model.cuda()
-    
     return model
 
 def iniLogger(logdir):
@@ -41,6 +39,7 @@ def train_classify_only(configer):
     trainset    = ClassifyDataset(configer.patch, configer.imsize, configer.scale)
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
     model       = iniClassifyModel(configer.in_channels, configer.n_classes, configer.modeldir)
+    if configer.cuda: model.cuda()
     metric      = IdentifyLoss()
     optimizer   = optim.Adam(model.parameters(), configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
@@ -62,7 +61,9 @@ def train_classify_only(configer):
             # load data
             X = Variable(X.float())
             y_true = Variable(y_true)
-            if torch.cuda.is_available(): X.cuda(); y_true.cuda()
+            if configer.cuda: 
+                X = X.cuda()
+                y_true = y_true.cuda()
 
             # forward
             _, y_pred_prob = model(X)
@@ -98,14 +99,15 @@ def train_classify_only(configer):
 
 
 def train_classify_with_verify(configer):
-    
-    assert os.path.exists(configer.modeldir), "please train classify model first! "
+    modeldir = '_'.join(configer.modeldir.split('_')[: -2])
+    assert os.path.exists(modeldir), "please train classify model first! "
 
     trainset    = ClassifyWithVerifyDataset(configer.patch, 'train', configer.imsize, configer.scale)
     trainloader = DataLoader(trainset, configer.batchsize // 2, shuffle=True)
     validset    = ClassifyWithVerifyDataset(configer.patch, 'valid', configer.imsize, configer.scale)
     validloader = DataLoader(validset, configer.batchsize // 2, shuffle=True)
     model       = iniClassifyModel(configer.in_channels, configer.n_classes, configer.modeldir)
+    if configer.cuda: model.cuda()
     metric      = TotalLoss(configer.verify_weight)
 
     params  = [
@@ -122,7 +124,15 @@ def train_classify_with_verify(configer):
 
     for i_epoch in range(configer.n_epoch):
 
+        torch.cuda.empty_cache()
         scheduler.step(i_epoch)
+
+
+
+        ident_epoch_train = []
+        verif_epoch_train = []
+        total_epoch_train = []
+        acc_epoch_train   = []
 
         model.train()
         for i_batch, (y, X1, y1_true, X2, y2_true) in enumerate(trainloader):
@@ -135,10 +145,12 @@ def train_classify_with_verify(configer):
             y1_true = Variable(y1_true)
             X2 = Variable(X2.float())
             y2_true = Variable(y2_true)
-            if torch.cuda.is_available(): 
-                y.cuda()
-                X1.cuda(); y1_true.cuda()
-                X2.cuda(); y2_true.cuda()
+            if configer.cuda: 
+                y = y.cuda()
+                X1 = X1.cuda()
+                y1_true = y1_true.cuda()
+                X2 = X2.cuda()
+                y2_true = y2_true.cuda()
 
             # forward
             X1, y1_pred_prob = model(X1)
@@ -147,6 +159,11 @@ def train_classify_with_verify(configer):
             # calculate loss and accuracy
             ident_i, verif_i, total_i = metric(X1, X2, y1_pred_prob, y2_pred_prob, y1_true, y2_true)
             acc_i  = (accuracy_mul(y1_pred_prob, y1_true) + accuracy_mul(y2_pred_prob, y2_true)) / 2
+
+            ident_epoch_train += [ident_i.detach().cpu().numpy()]
+            verif_epoch_train += [verif_i.detach().cpu().numpy()]
+            total_epoch_train += [total_i.detach().cpu().numpy()]
+            acc_epoch_train   += [acc_i.cpu().numpy()]
 
             # backward
             optimizer.zero_grad()
@@ -166,15 +183,18 @@ def train_classify_with_verify(configer):
                                     scheduler.get_lr()[-1], ident_i, verif_i, total_i, acc_i)
                 print(print_log)
 
-            # log
-            logger.add_scalar('train_acc', acc_i, cur_batch)
-            logger.add_scalars('train_loss', {'ident': ident_i, 'verif': verif_i, 'total': total_i}, cur_batch)
-            logger.add_scalar('loss_param', metric.verify.m, cur_batch)
-            logger.add_scalar('lr', scheduler.get_lr()[-1], cur_batch)
-    
+        ident_epoch_train = np.mean(np.array(ident_epoch_train))
+        verif_epoch_train = np.mean(np.array(verif_epoch_train))
+        total_epoch_train = np.mean(np.array(total_epoch_train))
+        acc_epoch_train   = np.mean(np.array(acc_epoch_train))
 
+        print('-----------------------------------------------------------------------------------------------------')
 
-        valid_loss = 0; valid_acc = 0
+        ident_epoch_valid = []
+        verif_epoch_valid = []
+        total_epoch_valid = []
+        acc_epoch_valid   = []
+
         model.eval()
         for i_batch, (y, X1, y1_true, X2, y2_true) in enumerate(validloader):
 
@@ -183,10 +203,12 @@ def train_classify_with_verify(configer):
             y1_true = Variable(y1_true)
             X2 = Variable(X2.float())
             y2_true = Variable(y2_true)
-            if torch.cuda.is_available(): 
-                y.cuda()
-                X1.cuda(); y1_true.cuda()
-                X2.cuda(); y2_true.cuda()
+            if configer.cuda: 
+                y = y.cuda()
+                X1 = X1.cuda()
+                y1_true = y1_true.cuda()
+                X2 = X2.cuda()
+                y2_true = y2_true.cuda()
 
             X1, y1_pred_prob = model(X1)
             X2, y2_pred_prob = model(X2)
@@ -194,8 +216,10 @@ def train_classify_with_verify(configer):
             ident_i, verif_i, total_i = metric(X1, X2, y1_pred_prob, y2_pred_prob, y1_true, y2_true)
             acc_i  = (accuracy_mul(y1_pred_prob, y1_true) + accuracy_mul(y2_pred_prob, y2_true)) / 2
 
-            valid_loss += total_i
-            valid_acc  += acc_i
+            ident_epoch_valid += [ident_i.detach().cpu().numpy()]
+            verif_epoch_valid += [verif_i.detach().cpu().numpy()]
+            total_epoch_valid += [total_i.detach().cpu().numpy()]
+            acc_epoch_valid   += [acc_i.cpu().numpy()]
 
             if i_batch % 10 == 0:
                 print_log = "{} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] || ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
@@ -203,12 +227,30 @@ def train_classify_with_verify(configer):
                                     ident_i, verif_i, total_i, acc_i)
                 print(print_log)
         
-        valid_loss /= i_batch
-        valid_acc  /= i_batch
 
-        logger.add_scalar('valid_acc', valid_acc, cur_batch)
-        logger.add_scalar('valid_loss', valid_loss, cur_batch)
+        ident_epoch_valid = np.mean(np.array(ident_epoch_valid))
+        verif_epoch_valid = np.mean(np.array(verif_epoch_valid))
+        total_epoch_valid = np.mean(np.array(total_epoch_valid))
+        acc_epoch_valid   = np.mean(np.array(acc_epoch_valid))
 
-        if valid_loss < valid_loss_last:
-            valid_loss_last = valid_loss
+        print('-----------------------------------------------------------------------------------------------------')
+        
+        print_log = "{} || Epoch: [{:3d}]/[{:3d}] || train | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%} || valid | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
+                            format(getTime(), i_epoch, configer.n_epoch, 
+                                    ident_epoch_train, verif_epoch_train, total_epoch_train, acc_epoch_train,
+                                    ident_epoch_valid, verif_epoch_valid, total_epoch_valid, acc_epoch_valid)
+        print(print_log)
+
+        logger.add_scalars('identify loss', {'train': ident_epoch_train, 'valid': ident_epoch_valid}, i_epoch)
+        logger.add_scalars('verify loss',   {'train': verif_epoch_train, 'valid': verif_epoch_valid}, i_epoch)
+        logger.add_scalars('total loss',    {'train': total_epoch_train, 'valid': total_epoch_valid}, i_epoch)
+        logger.add_scalars('accuracy',      {'train': acc_epoch_train,   'valid': acc_epoch_valid},   i_epoch)
+        logger.add_scalar('lr', scheduler.get_lr()[-1], i_epoch)
+
+        print('-----------------------------------------------------------------------------------------------------')
+        
+        if total_epoch_valid < valid_loss_last:
+            valid_loss_last = total_epoch_valid
             model.save()
+
+        print('=====================================================================================================')

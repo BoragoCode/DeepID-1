@@ -1,3 +1,4 @@
+from torch.cuda import is_available
 from easydict import EasyDict
 
 configer = EasyDict()
@@ -7,8 +8,26 @@ configer.scale = 'L'            # 'S', 'M', 'L'
 configer.with_verify = False
 
 
+
+
 configer.in_channels = 3
 configer.n_classes = 5749
+
+configer.lrbase = 0.001
+configer.stepsize = 50
+configer.gamma = 0.9
+
+configer.verify_weight = 0.1 
+
+configer.batchsize = 128
+configer.n_epoch = 200
+configer.valid_batch = 100
+
+configer.cuda = is_available()
+
+
+
+
 
 
 if configer.patch == 0:
@@ -22,18 +41,15 @@ configer.modelname = 'classify_patch{}_scale{}'.format(configer.patch, configer.
 configer.modeldir  = '../modelfile/{}'.format(configer.modelname)
 configer.logdir    = '../logfile/{}'.format(configer.modelname)
 if configer.with_verify:
+    configer.modeldir  = '../modelfile/{}_with_verify'.format(configer.modelname)
     configer.logdir = '{}_with_verify'.format(configer.logdir)
 
 
-configer.lrbase = 0.001
-configer.stepsize = 50
-configer.gamma = 0.9
 
-configer.verify_weight = 0.1 
 
-configer.batchsize = 128
-configer.n_epoch = 200
-configer.valid_batch = 100
+
+
+
 
 
 def updateConfiger(configer):
@@ -48,4 +64,6 @@ def updateConfiger(configer):
     configer.modelname = 'classify_patch{}_scale{}'.format(configer.patch, configer.scale)
     configer.modeldir  = '../modelfile/{}'.format(configer.modelname)
     configer.logdir    = '../logfile/{}'.format(configer.modelname)
-    
+    if configer.with_verify:
+        configer.modeldir  = '../modelfile/{}_with_verify'.format(configer.modelname)
+        configer.logdir = '{}_with_verify'.format(configer.logdir)
