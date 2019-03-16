@@ -51,12 +51,14 @@ def train_classify_only(configer):
 
     for i_epoch in range(configer.n_epoch):
 
+        if configer.cuda: torch.cuda.empty_cache()
         scheduler.step(i_epoch)
 
+        start_time = time.time()
+        
         model.train()
         for i_batch, (X, y_true) in enumerate(trainloader):
             
-            start_time = time.time()
 
             # load data
             X = Variable(X.float())
@@ -79,6 +81,7 @@ def train_classify_only(configer):
 
             # time
             duration_time = time.time() - start_time
+            start_time = time.time()
             elapsed_time += duration_time
 
             cur_batch += 1
@@ -124,20 +127,19 @@ def train_classify_with_verify(configer):
 
     for i_epoch in range(configer.n_epoch):
 
-        torch.cuda.empty_cache()
+        if configer.cuda: torch.cuda.empty_cache()
         scheduler.step(i_epoch)
-
-
 
         ident_epoch_train = []
         verif_epoch_train = []
         total_epoch_train = []
         acc_epoch_train   = []
+        
+        start_time = time.time()
 
         model.train()
         for i_batch, (y, X1, y1_true, X2, y2_true) in enumerate(trainloader):
             
-            start_time = time.time()
 
             # load data
             y  = Variable(y)
@@ -172,6 +174,7 @@ def train_classify_with_verify(configer):
 
             # time
             duration_time = time.time() - start_time
+            start_time = time.time()
             elapsed_time += duration_time
 
             cur_batch += 1
