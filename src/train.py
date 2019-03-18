@@ -379,6 +379,7 @@ def train_verify(configer):
             format(getTime(), i_epoch, configer.n_epoch, scheduler.get_lr()[-1], 
                     loss_train, acc_train, np.exp(-loss_train),
                     loss_valid, acc_valid, np.exp(-loss_valid))
+        print(print_log)
         
         if loss_valid < loss_valid_last:
             loss_valid_last = loss_valid
