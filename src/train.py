@@ -377,8 +377,8 @@ def train_verify(configer):
 
         print_log = "{} || Epoch: [{:3d}]/[{:3d}] || lr: {:.6f} || train | loss: {:.4f} acc: {:.2%} p: {:.4f} | valid | loss: {:.4f} acc: {:.2%} p: {:.4f}".\
             format(getTime(), i_epoch, configer.n_epoch, scheduler.get_lr()[-1], 
-                    loss_train, acc_train, torch.exp(-loss_train),
-                    loss_valid, acc_valid, torch.exp(-loss_valid))
+                    loss_train, acc_train, np.exp(-loss_train),
+                    loss_valid, acc_valid, np.exp(-loss_valid))
         
         if loss_valid < loss_valid_last:
             loss_valid_last = loss_valid
