@@ -1,6 +1,7 @@
 from gen_detect import *
 from gen_classify_samples import *
 from gen_classify_verify_samples import *
+from gen_verify_samples import *
 
 def main():
     datadir = '/home/louishsu/Work/Codes/DeepID/data/lfw-deepfunneled'
@@ -19,6 +20,7 @@ def main():
     # for i in range(9):
     #     gen_classify_verify_pairs(datadir, i, 1.2)
 
+    gen_verify_pairs(datadir)
     
 if __name__ == "__main__":
     main()
