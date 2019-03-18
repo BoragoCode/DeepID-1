@@ -1,6 +1,7 @@
 import os
 import torch
 import torch.nn as nn
+from collections import OrderedDict
 
 class Flatten(nn.Module):
 
@@ -92,6 +93,7 @@ class DeepIdClassifier(nn.Module):
 
         return x
 
+
 class Classifier(nn.Module):
 
     def __init__(self, in_channels, n_classes, modeldir):
@@ -136,4 +138,39 @@ class Classifier(nn.Module):
         self.classifier = torch.load(self.classifierpath)
 
         print("model loaded from {} ! ".format(self.modeldir))
+
+
+class Verifier(nn.Module):
+
+    def __init__(self, modeldir='../modelfile', n_patch=9, scales=['S', 'M', 'L']):
+        super(Verifier, self).__init__()
         
+        self.modeldir = modeldir
+        self.n_patch = n_patch
+        self.scales  = scales
+        self.features = OrderedDict()
+
+        self._load_features()
+        self.classifier = nn.Sequential(
+            nn.Linear(27*80, 4800),
+            nn.Dropout(),
+            nn.ReLU(True),
+            nn.Linear(4800, 1),
+            nn.Sigmoid(),
+        )
+
+    def _load_features(self):
+        
+        for patch in range(self.n_patch):
+            for scale in self.scales:
+                featurename = 'classify_patch{}_scale{}'.format(patch, scale)
+                featurepath = '{}/{}/features.pkl'.format(self.modeldir, featurename)
+                self.features[featurename] = nn.Sequential(
+                    torch.load(featurepath),
+                    nn.Linear(160, 80),
+                    nn.ReLU(True),
+                )
+
+    
+    def forward(self):
+        pass

@@ -148,6 +148,18 @@ class ClassifyWithVerifyDataset(Dataset):
         return len(self.samples_list)
 
 
+class VerifyDataset(Dataset):
+
+    def __init__(self, patch, scale, mode='train'):
+        pass
+    
+    def __getitem__(self, index):
+        pass
+    
+    def __len__(self):
+        pass
+
+
 if __name__ == "__main__":
     D = ClassifyDataset(0, (44, 33), 'M')
     X, y = D[0]
