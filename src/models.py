@@ -1,7 +1,6 @@
 import os
 import torch
 import torch.nn as nn
-from collections import OrderedDict
 
 class Flatten(nn.Module):
 
@@ -119,9 +118,6 @@ class Classifier(nn.Module):
         return x, y
 
     def save(self):
-
-        # torch.save(self.features.state_dict(), self.featurespath)
-        # torch.save(self.classifier.state_dict(), self.classifierpath)
         
         torch.save(self.features, self.featurespath)
         torch.save(self.classifier, self.classifierpath)
@@ -129,10 +125,6 @@ class Classifier(nn.Module):
         print("model saved at {} ! ".format(self.modeldir))
     
     def load(self):
-        # state_dict = torch.load(self.featurespath)
-        # self.features.load_state_dict(state_dict)
-        # state_dict = torch.load(self.classifierpath)
-        # self.classifier.load_state_dict(state_dict)
 
         self.features = torch.load(self.featurespath)
         self.classifier = torch.load(self.classifierpath)
@@ -141,16 +133,18 @@ class Classifier(nn.Module):
 
 
 class Verifier(nn.Module):
+    """
+    Attributes:
+        features:   {dict{'classify_patch{patch}_scale{scale}': nn.Sequential(nn.Linear(2*160, 80), nn.ReLU(True))}}
+    """
+    __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
 
-    def __init__(self, modeldir='../modelfile', n_patch=9, scales=['S', 'M', 'L']):
+    def __init__(self):
         super(Verifier, self).__init__()
         
-        self.modeldir = modeldir
-        self.n_patch = n_patch
-        self.scales  = scales
-        self.features = OrderedDict()
-
+        self.features = dict()
         self._load_features()
+
         self.classifier = nn.Sequential(
             nn.Linear(27*80, 4800),
             nn.Dropout(),
@@ -160,17 +154,42 @@ class Verifier(nn.Module):
         )
 
     def _load_features(self):
-        
-        for patch in range(self.n_patch):
-            for scale in self.scales:
-                featurename = 'classify_patch{}_scale{}'.format(patch, scale)
-                featurepath = '{}/{}/features.pkl'.format(self.modeldir, featurename)
-                self.features[featurename] = nn.Sequential(
-                    torch.load(featurepath),
-                    nn.Linear(160, 80),
-                    nn.ReLU(True),
-                )
 
-    
-    def forward(self):
-        pass
+        for patch, scale in self.__type:
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            self.features[key] = nn.Sequential(
+                nn.Linear(2*160, 80),
+                nn.ReLU(True),
+            )
+
+    def forward(self, X):
+        """
+        Params:
+            X:  {tensor(N, n_groups(27), 160x2)}
+        Returns:
+            x:  {tensor(N)}
+        """
+        N, g, n = X.shape
+        
+        ## locally-connected layer
+        x = None
+        for i in range(len(self.__type)):
+            patch, scale = self.__type[i]
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            if x is None:
+                x = self.features[key](X[:, i])
+            else:
+                x = torch.cat([x, self.features[key](X[:, i])], dim=1)
+
+        ## fully connected layer
+        x = x.view(x.shape[0], -1)
+        x = self.classifier(x).view(-1)
+
+        return x
+
+
+
+if __name__ == "__main__":
+    M = Verifier()
+    X = torch.randn(128, 27, 160*2)
+    y = M(X)

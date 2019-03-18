@@ -1,5 +1,6 @@
 import os
 import cv2
+import numpy as np
 from numpy.random import rand
 
 import torch
@@ -150,16 +151,62 @@ class ClassifyWithVerifyDataset(Dataset):
 
 class VerifyDataset(Dataset):
 
-    def __init__(self, patch, scale, mode='train'):
-        pass
-    
+    __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
+
+    def __init__(self, mode='train'):
+        txtfile = '../data/lfw_verify/lfw_verify_{}.txt'.format(mode)
+        with open(txtfile, 'r') as f:
+            pairs = f.readlines()
+        self.pairs = [[int(num) for num in pair.strip().split(' ')] for pair in pairs]
+        self.features = self.__loadFeatures()
+
+        self.X = dict()
+        for patch, scale in self.__type:
+            key = 'lfw_classify_{}_scale{}'.format(patch, scale)
+            self.X[key] = np.load('../data/lfw_classify/features/{}.npy'.format(key))
+        
     def __getitem__(self, index):
-        pass
-    
+        """
+        Params:
+            index:  {int}
+        Returns:
+            X:      {tensor(n_groups(27), 2x160)}
+        Notes:
+            - {0~8} {S, M, L}
+        """
+        idx1, idx2, label = self.pairs[index]
+
+        X1 = np.zeros(shape=(27, 160))
+        X2 = np.zeros(shape=(27, 160))
+        
+        for i in range(27):
+            patch, scale = self.__type[i]
+            key = 'lfw_classify_{}_scale{}'.format(patch, scale)
+            X1[i] = self.X[key][idx1]; X2[i] = self.X[key][idx2]
+        
+        if rand(1) > 0.5: X1, X2 = X2, X1
+        
+        X = np.concatenate([X1, X2], axis=1)
+        
+        return X, label
+
     def __len__(self):
-        pass
+        return len(self.pairs)
+    
+    def __loadFeatures(self):
+        
+        features = dict()
+        for patch in range(9):
+            for scale in ['S', 'M', 'L']:
+                key = 'lfw_classify_{}_scale{}'.format(patch, scale)
+                path = '../data/lfw_classify/features/{}.npy'.format(key)
+                features[key] = np.load(path)
+        
+        return features
 
 
 if __name__ == "__main__":
-    D = ClassifyDataset(0, (44, 33), 'M')
+    # D = ClassifyDataset(0, (44, 33), 'M')
+    # X, y = D[0]
+    D = VerifyDataset()
     X, y = D[0]

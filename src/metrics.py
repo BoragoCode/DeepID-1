@@ -93,3 +93,19 @@ class TotalLoss(nn.Module):
         verif = self.verify(x1, x2, y1_true==y2_true)
         total = ident + self.k * verif
         return ident, verif, total
+
+class VerifyBinLoss(nn.Module):
+
+    def __init__(self):
+        super(VerifyBinLoss, self).__init__()
+
+        self.lossfunc = nn.BCELoss()
+    
+    def forward(self, y_pred, y_true):
+        """
+        Params:
+            y_pred: {tensor(N)}
+            y_true: {tensor(N)}
+        """
+        return self.lossfunc(y_pred, y_true)
+        
