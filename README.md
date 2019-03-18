@@ -41,7 +41,23 @@ face verification
                                     # label filepath1 x11 y11 x21 y21 label1 filepath2 x12 y12 x22 y22 label2
 ```
 
+## Models
+1. Classify model
+    1. Combined with `features` and `classifiers`;
+    2. `features` contains `convolution layers` and a `connected later`, will be used in verification;
+
+    ![classifier_model](/images/classifier_model.png)
+
+2. Verify model
+    1. Combined with `features` and `classifiers`;
+    2. `features` is combined with `features` of `Classify model` and a `locally-connected layer`;
+    3. `classifiers` contains a `fully-connected layer`
+
+    ![verifier_model](/images/verifier_model.png)
+
 ## Details
+1. Train classify models first;
+2. After trainig the classify models, save features as `.npy` at `/data/lfw_classify/lfw_classify_{patch}.npy`;
 
 ## Reference
 1. [Deep Learning Face Representation from Predicting 10,000 Classes](https://ieeexplore.ieee.org/document/6909640?tp=&arnumber=6909640&refinements%3D4291944822%26sortType%3Ddesc_p_Publication_Year%26ranges%3D2014_2014_p_Publication_Year%26pageNumber%3D284%26rowsPerPage%3D100=).
