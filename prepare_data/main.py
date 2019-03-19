@@ -1,6 +1,5 @@
 from gen_detect import *
 from gen_classify_samples import *
-from gen_classify_verify_samples import *
 from gen_verify_samples import *
 
 def main():
@@ -16,11 +15,12 @@ def main():
     # for i in range(9):
     #     gen_classify(datadir, i, 1.2)
 
-    # step 4. generate classify with verification samples
-    # for i in range(9):
-    #     gen_classify_verify_pairs(datadir, i, 1.2)
+    ## step 4. generate verify samples
+    # gen_verify_pairs(datadir)
 
-    gen_verify_pairs(datadir)
+    ## step 5. generate finetune samples
+    for i in range(9):
+        gen_classify_similarity_pairs(datadir, i, ratio=1.2)
     
 if __name__ == "__main__":
     main()
