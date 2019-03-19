@@ -70,27 +70,27 @@ face verification
 
 ## Loss
 1. Classification loss(Cross Entropy)
-    $$
-    \text{loss}(x, class) = -\log\left(\frac{\exp(x[class])}{\sum_j \exp(x[j])}\right)
-                       = -x[class] + \log\left(\sum_j \exp(x[j])\right)
-    $$
+$$
+\text{loss}(x, class) = -\log\left(\frac{\exp(x[class])}{\sum_j \exp(x[j])}\right)
+                   = -x[class] + \log\left(\sum_j \exp(x[j])\right)
+$$
     
 2. Verification loss(BCE)
-    $$
-    \ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \quad
-    l_n = - w_n \left[ y_n \cdot \log x_n + (1 - y_n) \cdot \log (1 - x_n) \right],
-    $$
+$$
+\ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \quad
+l_n = - w_n \left[ y_n \cdot \log x_n + (1 - y_n) \cdot \log (1 - x_n) \right],
+$$
 
 3. Similarity loss, **Used to fine-tune the classification models.**
-    $$
-    \text{loss}(f_i, f_j, y_{ij}, \theta_{ve}) = 
-    \begin{cases}
-        \frac{1}{2} ||f_i - f_j||_2^2 & if y_{ij} =  1 \\
-        \frac{1}{2} max(0, m-||f_i - f_j||_2)^2 & if y_{ij} = -1 
-    \end{cases}
-    $$
-    
-    where $m$ is the parameter to be learned.
+$$
+\text{loss}(f_i, f_j, y_{ij}, \theta_{ve}) = 
+\begin{cases}
+    \frac{1}{2} ||f_i - f_j||_2^2 & if y_{ij} =  1 \\
+    \frac{1}{2} max(0, m-||f_i - f_j||_2)^2 & if y_{ij} = -1 
+\end{cases}
+$$
+
+where $m$ is the parameter to be learned.
 
 ## Details
 1. Train classify models first;
