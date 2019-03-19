@@ -14,30 +14,30 @@ def updateConfiger(configer):
     configer.modelname = 'classify_patch{}_scale{}'.format(configer.patch, configer.scale)
     configer.modeldir  = '../modelfile/{}'.format(configer.modelname)
     configer.logdir    = '../logfile/{}'.format(configer.modelname)
-    if configer.with_verify:
-        configer.modeldir  = '../modelfile/{}_with_verify'.format(configer.modelname)
-        configer.logdir = '{}_with_verify'.format(configer.logdir)
+    if configer.finetune:
+        configer.modeldir  = '../modelfile/{}_finetune'.format(configer.modelname)
+        configer.logdir = '{}_finetune'.format(configer.logdir)
+
+
 
 configer = EasyDict()
 
-configer.patch = 1              # 0 ~ 8
-configer.scale = 'L'            # 'S', 'M', 'L'
-configer.with_verify = False
-
-
-
-
+configer.patch = 0              # 0 ~ 8
+configer.scale = 'S'            # 'S', 'M', 'L'
+configer.finetune = True        # 'True' or 'False'
+## for classification
 configer.in_channels = 3
 configer.n_classes = 5749
 
+## optimizer
 configer.lrbase = 0.001
-configer.stepsize = 200
+configer.stepsize = 40
 configer.gamma = 0.1
 
 configer.verify_weight = 0.1 
 
 configer.batchsize = 256
-configer.n_epoch = 500
+configer.n_epoch = 60
 configer.valid_batch = 100
 
 configer.cuda = is_available()

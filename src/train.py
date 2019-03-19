@@ -11,10 +11,24 @@ from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
 from utiles   import getTime
-from datasets import ClassifyDataset, ClassifyWithVerifyDataset, VerifyDataset
+from datasets import ClassifyDataset, ClassifyWithSimilarity, VerifyDataset
 from metrics  import IdentifyLoss, TotalLoss, VerifyBinLoss, accuracy_mul, accuracy_bin
 from models   import Classifier, Verifier
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------
 def iniClassifyModel(in_channels, n_classes, modeldir):
 
     model = Classifier(in_channels, n_classes, modeldir)
@@ -101,54 +115,86 @@ def train_classify_only(configer):
 
 
 
-def train_classify_with_verify(configer):
-    modeldir = '_'.join(configer.modeldir.split('_')[: -2])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------
+def train_classify_with_similarity(configer):
+    modeldir = '_'.join(configer.modeldir.split('_')[: -1])
     assert os.path.exists(modeldir), "please train classify model first! "
 
-    trainset    = ClassifyWithVerifyDataset(configer.patch, 'train', configer.imsize, configer.scale)
-    trainloader = DataLoader(trainset, configer.batchsize // 2, shuffle=True)
-    validset    = ClassifyWithVerifyDataset(configer.patch, 'valid', configer.imsize, configer.scale)
-    validloader = DataLoader(validset, configer.batchsize // 2, shuffle=True)
-    model       = iniClassifyModel(configer.in_channels, configer.n_classes, configer.modeldir)
+    trainset    = ClassifyWithSimilarity(configer.patch, configer.scale, 'train', configer.imsize)
+    trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
+    validset    = ClassifyWithSimilarity(configer.patch, configer.scale, 'valid', configer.imsize)
+    validloader = DataLoader(validset, configer.batchsize, shuffle=False)
+    model       = iniClassifyModel(configer.in_channels, configer.n_classes, modeldir)
     if configer.cuda: model.cuda()
-    metric      = TotalLoss(configer.verify_weight)
+    metric      = TotalLoss(0.1)
 
     params  = [
             {'params': model.parameters(), 'lr': configer.lrbase * 0.1},
-            {'params': metric.verify.parameters()},
+            {'params': metric.similarity.parameters()},
     ]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
     logger      = iniLogger(configer.logdir)
 
-    cur_batch = 0
-    elapsed_time = 0; total_time = 0
+    start_time = 0; duration_time = 0; elapsed_time = 0; total_time = 0
     valid_loss_last = float('inf')
+
+
 
     for i_epoch in range(configer.n_epoch):
 
         if configer.cuda: torch.cuda.empty_cache()
         scheduler.step(i_epoch)
 
-        ident_epoch_train = []
-        verif_epoch_train = []
-        total_epoch_train = []
-        acc_epoch_train   = []
+
+
+        ident_train = []
+        similar_train = []
+        total_train = []
+        acc_train   = []
         
         start_time = time.time()
 
         model.train()
-        for i_batch, (y, X1, y1_true, X2, y2_true) in enumerate(trainloader):
+        for i_batch, (X1, y1_true, X2, y2_true) in enumerate(trainloader):
             
-
             # load data
-            y  = Variable(y)
             X1 = Variable(X1.float())
             y1_true = Variable(y1_true)
             X2 = Variable(X2.float())
             y2_true = Variable(y2_true)
             if configer.cuda: 
-                y = y.cuda()
                 X1 = X1.cuda()
                 y1_true = y1_true.cuda()
                 X2 = X2.cuda()
@@ -159,13 +205,13 @@ def train_classify_with_verify(configer):
             X2, y2_pred_prob = model(X2)
 
             # calculate loss and accuracy
-            ident_i, verif_i, total_i = metric(X1, X2, y1_pred_prob, y2_pred_prob, y1_true, y2_true)
+            ident_i, similar_i, total_i = metric(X1, X2, y1_pred_prob, y2_pred_prob, y1_true, y2_true)
             acc_i  = (accuracy_mul(y1_pred_prob, y1_true) + accuracy_mul(y2_pred_prob, y2_true)) / 2
 
-            ident_epoch_train += [ident_i.detach().cpu().numpy()]
-            verif_epoch_train += [verif_i.detach().cpu().numpy()]
-            total_epoch_train += [total_i.detach().cpu().numpy()]
-            acc_epoch_train   += [acc_i.cpu().numpy()]
+            ident_train += [ident_i.detach().cpu().numpy()]
+            similar_train += [similar_i.detach().cpu().numpy()]
+            total_train += [total_i.detach().cpu().numpy()]
+            acc_train   += [acc_i.cpu().numpy()]
 
             # backward
             optimizer.zero_grad()
@@ -177,37 +223,34 @@ def train_classify_with_verify(configer):
             start_time = time.time()
             elapsed_time += duration_time
 
-            cur_batch += 1
-            if cur_batch % 10 == 0:
-                total_time = duration_time * configer.n_epoch * len(trainset) // configer.batchsize
-                print_log = "{} || Elapsed: {:.4f}h | Left: {:.4f}h | FPS: {:4.2f} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] | cur: [{:6d}] || lr: {:.6f} | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
-                            format(getTime(), elapsed_time/3600, 2*(total_time - elapsed_time)/3600, configer.batchsize / duration_time,
-                                    i_epoch, configer.n_epoch, i_batch, len(trainset) // configer.batchsize, cur_batch, 
-                                    scheduler.get_lr()[-1], ident_i, verif_i, total_i, acc_i)
-                print(print_log)
+            total_time = duration_time * configer.n_epoch * len(trainset) // configer.batchsize
+            print_log = "{} || Elapsed: {:.4f}h | Left: {:.4f}h | FPS: {:4.2f} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] || lr: {:.6f} | ident_i: {:.3f}, similar_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
+                        format(getTime(), elapsed_time/3600, (total_time - elapsed_time)/3600, configer.batchsize / duration_time,
+                                i_epoch, configer.n_epoch, i_batch, len(trainset) // configer.batchsize, 
+                                scheduler.get_lr()[-1], ident_i, similar_i, total_i, acc_i)
+            print(print_log)
 
-        ident_epoch_train = np.mean(np.array(ident_epoch_train))
-        verif_epoch_train = np.mean(np.array(verif_epoch_train))
-        total_epoch_train = np.mean(np.array(total_epoch_train))
-        acc_epoch_train   = np.mean(np.array(acc_epoch_train))
+        ident_train = np.mean(np.array(ident_train))
+        similar_train = np.mean(np.array(similar_train))
+        total_train = np.mean(np.array(total_train))
+        acc_train   = np.mean(np.array(acc_train))
 
         print('-----------------------------------------------------------------------------------------------------')
 
-        ident_epoch_valid = []
-        verif_epoch_valid = []
-        total_epoch_valid = []
-        acc_epoch_valid   = []
+
+        ident_valid = []
+        similar_valid = []
+        total_valid = []
+        acc_valid   = []
 
         model.eval()
-        for i_batch, (y, X1, y1_true, X2, y2_true) in enumerate(validloader):
+        for i_batch, (X1, y1_true, X2, y2_true) in enumerate(validloader):
 
-            y  = Variable(y)
             X1 = Variable(X1.float())
             y1_true = Variable(y1_true)
             X2 = Variable(X2.float())
             y2_true = Variable(y2_true)
             if configer.cuda: 
-                y = y.cuda()
                 X1 = X1.cuda()
                 y1_true = y1_true.cuda()
                 X2 = X2.cuda()
@@ -216,50 +259,86 @@ def train_classify_with_verify(configer):
             X1, y1_pred_prob = model(X1)
             X2, y2_pred_prob = model(X2)
 
-            ident_i, verif_i, total_i = metric(X1, X2, y1_pred_prob, y2_pred_prob, y1_true, y2_true)
+            ident_i, similar_i, total_i = metric(X1, X2, y1_pred_prob, y2_pred_prob, y1_true, y2_true)
             acc_i  = (accuracy_mul(y1_pred_prob, y1_true) + accuracy_mul(y2_pred_prob, y2_true)) / 2
 
-            ident_epoch_valid += [ident_i.detach().cpu().numpy()]
-            verif_epoch_valid += [verif_i.detach().cpu().numpy()]
-            total_epoch_valid += [total_i.detach().cpu().numpy()]
-            acc_epoch_valid   += [acc_i.cpu().numpy()]
+            ident_valid += [ident_i.detach().cpu().numpy()]
+            similar_valid += [similar_i.detach().cpu().numpy()]
+            total_valid += [total_i.detach().cpu().numpy()]
+            acc_valid   += [acc_i.cpu().numpy()]
 
-            if i_batch % 10 == 0:
-                print_log = "{} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] || ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
-                            format(getTime(), i_epoch, configer.n_epoch, i_batch, len(validset) // configer.batchsize, 
-                                    ident_i, verif_i, total_i, acc_i)
-                print(print_log)
+            print_log = "{} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] || ident_i: {:.3f}, similar_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
+                        format(getTime(), i_epoch, configer.n_epoch, i_batch, len(validset) // configer.batchsize, 
+                                ident_i, similar_i, total_i, acc_i)
+            print(print_log)
         
 
-        ident_epoch_valid = np.mean(np.array(ident_epoch_valid))
-        verif_epoch_valid = np.mean(np.array(verif_epoch_valid))
-        total_epoch_valid = np.mean(np.array(total_epoch_valid))
-        acc_epoch_valid   = np.mean(np.array(acc_epoch_valid))
+        ident_valid = np.mean(np.array(ident_valid))
+        similar_valid = np.mean(np.array(similar_valid))
+        total_valid = np.mean(np.array(total_valid))
+        acc_valid   = np.mean(np.array(acc_valid))
 
         print('-----------------------------------------------------------------------------------------------------')
         
-        print_log = "{} || Epoch: [{:3d}]/[{:3d}] || train | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%} || valid | ident_i: {:.3f}, verif_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
+        print_log = "{} || Epoch: [{:3d}]/[{:3d}] || train | ident_i: {:.3f}, similar_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%} || valid | ident_i: {:.3f}, similar_i: {:.3f}, total_i: {:.3f} | acc_i: {:.2%}".\
                             format(getTime(), i_epoch, configer.n_epoch, 
-                                    ident_epoch_train, verif_epoch_train, total_epoch_train, acc_epoch_train,
-                                    ident_epoch_valid, verif_epoch_valid, total_epoch_valid, acc_epoch_valid)
+                                    ident_train, similar_train, total_train, acc_train,
+                                    ident_valid, similar_valid, total_valid, acc_valid)
         print(print_log)
 
-        logger.add_scalars('identify loss', {'train': ident_epoch_train, 'valid': ident_epoch_valid}, i_epoch)
-        logger.add_scalars('verify loss',   {'train': verif_epoch_train, 'valid': verif_epoch_valid}, i_epoch)
-        logger.add_scalars('total loss',    {'train': total_epoch_train, 'valid': total_epoch_valid}, i_epoch)
-        logger.add_scalars('accuracy',      {'train': acc_epoch_train,   'valid': acc_epoch_valid},   i_epoch)
+        logger.add_scalars('identify loss', {'train': ident_train, 'valid': ident_valid}, i_epoch)
+        logger.add_scalars('similary loss',   {'train': similar_train, 'valid': similar_valid}, i_epoch)
+        logger.add_scalars('total loss',    {'train': total_train, 'valid': total_valid}, i_epoch)
+        logger.add_scalars('accuracy',      {'train': acc_train,   'valid': acc_valid},   i_epoch)
         logger.add_scalar('lr', scheduler.get_lr()[-1], i_epoch)
 
         print('-----------------------------------------------------------------------------------------------------')
         
-        if total_epoch_valid < valid_loss_last:
-            valid_loss_last = total_epoch_valid
-            model.save()
+        if total_valid < valid_loss_last:
+            valid_loss_last = total_valid
+            model.save(True)
 
         print('=====================================================================================================')
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------
 def iniVerifyModel():
     modelpath = '../modelfile/verify.pkl'
     if os.path.exists(modelpath):
@@ -326,7 +405,7 @@ def train_verify(configer):
             ## log
             print_log = "{} || Elapsed: {:.4f}h | Left: {:.4f}h | FPS: {:4.2f} || Epoch: [{:3d}]/[{:3d}] | Batch: [{:3d}]/[{:3d}] || lr: {:.6f} | loss_i: {:.4f} acc_i: {:.2%} p: {:.4f}".\
                 format(getTime(), elapsed_time/3600, (total_time - elapsed_time)/3600, configer.batchsize / duration_time,
-                        i_epoch, configer.n_epoch, i_batch, len(trainset) // configer.batchsize, 
+                        i_epoch, configer.n_epoch, i_batch, len(validset) // configer.batchsize, 
                         scheduler.get_lr()[-1], loss_i, acc_i, torch.exp(-loss_i))
             print(print_log)
 

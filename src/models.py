@@ -74,6 +74,7 @@ class DeepIdFeatures(nn.Module):
         x = x / torch.unsqueeze(_x_, dim=1)
         return x
 
+
 class DeepIdClassifier(nn.Module):
 
     def __init__(self, n_classes):
@@ -91,6 +92,34 @@ class DeepIdClassifier(nn.Module):
         x = self.classifier(x)
 
         return x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Classifier(nn.Module):
@@ -117,17 +146,39 @@ class Classifier(nn.Module):
 
         return x, y
 
-    def save(self):
+    def save(self, finetune=False):
         
-        torch.save(self.features, self.featurespath)
-        torch.save(self.classifier, self.classifierpath)
+        featurespath = self.featurespath
+        classifierpath = self.classifierpath
+
+        if finetune:
+            featurespath = featurespath.split('.')
+            featurespath[-2] += '_finetune'
+            featurespath = '.'.join(featurespath)
+            classifierpath = classifierpath.split('.')
+            classifierpath[-2] += '_finetune'
+            classifierpath = '.'.join(classifierpath)
+
+        torch.save(self.features, featurespath)
+        torch.save(self.classifier, classifierpath)
 
         print("model saved at {} ! ".format(self.modeldir))
     
-    def load(self):
+    def load(self, finetune=False):
 
-        self.features = torch.load(self.featurespath)
-        self.classifier = torch.load(self.classifierpath)
+        featurespath = self.featurespath
+        classifierpath = self.classifierpath
+
+        if finetune:
+            featurespath = featurespath.split('.')
+            featurespath[-2] += '_finetune'
+            featurespath = '.'.join(featurespath)
+            classifierpath = classifierpath.split('.')
+            classifierpath[-2] += '_finetune'
+            classifierpath = '.'.join(classifierpath)
+
+        self.features = torch.load(featurespath)
+        self.classifier = torch.load(classifierpath)
 
         print("model loaded from {} ! ".format(self.modeldir))
 
@@ -187,6 +238,44 @@ class Verifier(nn.Module):
 
         return x
 
+
+
+class DeepID(nn.Module):
+    """ Whole model
+
+    Attributes:
+        features(27):   {dict[key]=DeepIdFeatures} classify_patch{}_scale{}: DeepIdFeatures
+                        input       --->    output
+                        N x H x W x 3       N x 160
+
+        verifier:       {Verifier}
+                        input       --->    output
+                        N x 27 x (160x2)    N x 1
+
+    """
+    
+    __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
+
+    def __init__(self, finetuned=False):
+        super(DeepID, self).__init__()
+
+        self.features = dict()
+        for patch, scale in self.__type:
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            self.features[key] = torch.load('../modelfile/{}/{}.pkl'.\
+                            format(key, 'features_finetune' if finetuned else 'features'))
+
+        self.verifier = torch.load('../modelfile/verify.pkl')
+
+    def forward(self, X, bbox, landmarks):
+        """
+        Params:
+            X:          {tensor}    the whole iamge
+            bbox:       {list[int]} [ulx, uly, drx, dry]
+            landmarks   {list[int]} [lex, ley, rex, rey, nx, ny, lmx, lmy, rmx, rmy]
+        """
+
+        pass
 
 
 if __name__ == "__main__":

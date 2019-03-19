@@ -29,9 +29,12 @@ def accuracy_bin(y_pred_prob, y_true):
     acc = accuracy(y_pred_prob, y_true)
     return acc
     
+
+
     
 class IdentifyLoss(nn.Module):
-
+    """ for classification
+    """
     def __init__(self):
         super(IdentifyLoss, self).__init__()
 
@@ -47,35 +50,60 @@ class IdentifyLoss(nn.Module):
         """
         return self.identify(y_pred, y_true)
 
-class VerifyLoss(nn.Module):
 
+
+class SimilarityLoss(nn.Module):
+    """ similarity loss for classification
+    Notes:
+        .. math::
+            \text{loss}(f_i, f_j, y_{ij}, \theta_{ve}) = 
+                \begin{cases}
+                    \frac{1}{2} ||f_i - f_j||_2^2           & if y_{ij} =  1 \\
+                    \frac{1}{2} max(0, m-||f_i - f_j||_2)^2 & if y_{ij} = -1 
+                \end{cases}
+    """
     def __init__(self):
-        super(VerifyLoss, self).__init__()
+        super(SimilarityLoss, self).__init__()
 
-        self.m = nn.Parameter(torch.randn(1), requires_grad=True)
+        self.m = nn.Parameter(torch.tensor(0.5), requires_grad=True)
 
     def forward(self, x1, x2, y):
         """
         Params:
-            x1: {tensor(N, 160)}
-            x2: {tensor(N, 160)}
+            x1: {tensor(N, 160)} unitized vector
+            x2: {tensor(N, 160)} unitized vector
             y:  {tensor(N)}      bool
         Returns:
-            loss:   {tensor(1)}
+            l:  {tensor(1)}
         """
-        d2 = torch.sum((x1 - x2)**2, dim=1)
-        d2[y==False] = torch.clamp(self.m - d2[y==False], 0, float('inf'))
+        ## l1 loss
+        l = torch.sum(torch.abs(x1 - x2), dim=1)
+        l_pos = torch.mean(l[y==1])
+        l_neg = torch.mean(torch.clamp(self.m - l[y==0], 0, float('inf')))
 
-        return torch.mean(d2)
+        ## l2 loss
+        # l = torch.sqrt(torch.sum((x1 - x2)**2, dim=1))
+        # l_pos = torch.mean(l[y==1]**2)
+        # l_neg = torch.mean(torch.clamp(self.m - l[y==0], 0, float('inf'))**2)
+
+        l = l_pos + l_neg
+
+        return l
+
+
 
 class TotalLoss(nn.Module):
-
-    def __init__(self, k=0.1):
+    """ for classification, with similarity loss
+    Attributes:
+        k:          {float}         weight of similarity loss
+        identify:   {IdentifyLoss}  classification loss
+    """
+    def __init__(self, k=0.01):
         super(TotalLoss, self).__init__()
         
         self.k = k
         self.identify = IdentifyLoss()
-        self.verify   = VerifyLoss()
+        self.similarity = SimilarityLoss()
 
     def forward(self, x1, x2, y1_pred, y2_pred, y1_true, y2_true):
         """
@@ -90,11 +118,16 @@ class TotalLoss(nn.Module):
             loss:   {tensor(1)}
         """
         ident = (self.identify(y1_pred, y1_true) + self.identify(y2_pred, y2_true)) / 2
-        verif = self.verify(x1, x2, y1_true==y2_true)
-        total = ident + self.k * verif
-        return ident, verif, total
+        similar = self.similarity(x1, x2, y1_true==y2_true)
+
+        total = ident + self.k * similar
+        return ident, similar, total
+
+
 
 class VerifyBinLoss(nn.Module):
+    """ for verification
+    """
 
     def __init__(self):
         super(VerifyBinLoss, self).__init__()
