@@ -44,13 +44,17 @@ face verification
     |-- lfw_labels.txt                          # name label
     \-- lfw_classify
         |-- lfw_classify_{0~8}.txt              # filepath x1 y1 x2 y2 label
-        \-- features                            # features saved when testing classify models
-            |-- lfw_classify_{0~8}_scale{S,M,L}.npy
     \-- lfw_verify
         |-- lfw_verify_{train/valid/test}.txt   # index1, index2, label
+    \-- lfw_classify_similarity
+        |-- lfw_classify_similarity_{0~8}.txt   # filepath1 x11 y11 x21 y21 label1\n
+                                                # filepath2 x12 y12 x22 y22 label2
     
 
-    \-- lfw_classify_similarity
+    
+    \-- features                                # features saved when testing classify models
+        |-- lfw_classify_{0~8}_scale{S,M,L}.npy
+
 ```
 
 ## Models
@@ -78,7 +82,7 @@ $$
 2. Verification loss(BCE)
 $$
 \ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \quad
-l_n = - w_n \left[ y_n \cdot \log x_n + (1 - y_n) \cdot \log (1 - x_n) \right],
+l_n = - w_n \left[ y_n \cdot \log x_n + (1 - y_n) \cdot \log (1 - x_n) \right]
 $$
 
 3. Similarity loss, **Used to fine-tune the classification models.**
