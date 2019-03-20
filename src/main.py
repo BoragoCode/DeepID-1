@@ -1,6 +1,6 @@
 from config import configer, updateConfiger
 from train import train_classify_only, train_verify, train_classify_with_similarity, train_deepid_net
-from test import test_classify_only, test_verify, test_classify_with_similarity
+from test import test_classify_only, test_verify, test_classify_with_similarity, test_deepid_net
 
 def main():
 
@@ -54,7 +54,8 @@ def main():
 
 
     ## train whole net
-    train_deepid_net(configer)
+    # train_deepid_net(configer)
+    test_deepid_net(configer)
 
 
 if __name__ == "__main__":
