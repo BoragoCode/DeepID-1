@@ -1,6 +1,7 @@
 from gen_detect import *
 from gen_classify_samples import *
 from gen_verify_samples import *
+from gen_deepid_pairs import *
 
 def main():
     datadir = '/home/louishsu/Work/Codes/DeepID/data/lfw-deepfunneled'
@@ -19,8 +20,10 @@ def main():
     # gen_verify_pairs(datadir)
 
     ## step 5. generate finetune samples
-    for i in range(9):
-        gen_classify_similarity_pairs(datadir, i, ratio=1.2)
+    # for i in range(9):
+    #     gen_classify_similarity_pairs(datadir, i, ratio=1.2)
+
+    gen_deepid_pair_samples(datadir)
     
 if __name__ == "__main__":
     main()
