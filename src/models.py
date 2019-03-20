@@ -233,10 +233,44 @@ class Verifier(nn.Module):
                 x = torch.cat([x, self.features[key](X[:, i])], dim=1)
 
         ## fully connected layer
-        x = x.view(x.shape[0], -1)
         x = self.classifier(x).view(-1)
 
         return x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -246,7 +280,7 @@ class DeepID(nn.Module):
     Attributes:
         features(27):   {dict[key]=DeepIdFeatures} classify_patch{}_scale{}: DeepIdFeatures
                         input       --->    output
-                        N x H x W x 3       N x 160
+                        N x 3 x H x W       N x 160
 
         verifier:       {Verifier}
                         input       --->    output
@@ -256,29 +290,105 @@ class DeepID(nn.Module):
     
     __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
 
-    def __init__(self, finetuned=False):
+    def __init__(self, type=None):
+        """
+        Params:
+            type:   {str} None or `finetune`, `deepid`
+        """
         super(DeepID, self).__init__()
+
+        self.type = type
+        self.load()
+
+    def forward(self, X0, X1, X2, X3, X4, X5, X6, X7, X8):
+        """
+        Params:
+            X0: {tensor(N, 2, 3, 3, 44, 33)}    patch0
+            X1: {tensor(N, 2, 3, 3, 25, 33)}    patch1
+            X2: {tensor(N, 2, 3, 3, 25, 33)}    patch2
+            X3: {tensor(N, 2, 3, 3, 25, 33)}    patch3
+            X4: {tensor(N, 2, 3, 3, 25, 25)}    patch4
+            X5: {tensor(N, 2, 3, 3, 25, 25)}    patch5
+            X6: {tensor(N, 2, 3, 3, 25, 25)}    patch6
+            X7: {tensor(N, 2, 3, 3, 25, 25)}    patch7
+            X8: {tensor(N, 2, 3, 3, 25, 25)}    patch8
+        Notes:
+            2 people; 3 scales: 'S', 'M', 'L'
+        """
+        scales = ['S', 'M', 'L']
+        patches = [X0, X1, X2, X3, X4, X5, X6, X7, X8]
+        
+        features = torch.zeros(X0.shape[0], 27, 160*2)
+        for patch, scale in self.__type:
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            idx_s = scales.index(scale)
+            X = patches[patch][:, :, idx_s]     # {tensor(N, 2, 3, 44, 33)}
+            X1 = self.features[key](X[:, 0])    # {tensor(N, 3, h, w)} ---> {tensor(N, 160)}
+            X2 = self.features[key](X[:, 1])    # {tensor(N, 3, h, w)} ---> {tensor(N, 160)}
+            features[:, patch*3 + idx_s] = torch.cat([X1, X2], dim=1)   # {tensor(N, 160x2)}
+        
+        y = self.verifier(features)
+        return y
+
+    def load(self):
+        """
+        Params:
+            type:   {str} None or `finetune`, `deepid`
+        """
 
         self.features = dict()
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
-            self.features[key] = torch.load('../modelfile/{}/{}.pkl'.\
-                            format(key, 'features_finetune' if finetuned else 'features'))
+            featurename = 'features' if self.type is None else 'features_{}'.format(self.type)
+            self.features[key] = torch.load('../modelfile/{}/{}.pkl'.format(key, featurename))
+        verifiername = 'verify' if self.type is None else 'verify_{}'.format(self.type)
+        self.verifier = torch.load('../modelfile/{}.pkl'.format(verifiername))
 
-        self.verifier = torch.load('../modelfile/verify.pkl')
+    def save(self, total=False):
 
-    def forward(self, X, bbox, landmarks):
-        """
-        Params:
-            X:          {tensor}    the whole iamge
-            bbox:       {list[int]} [ulx, uly, drx, dry]
-            landmarks   {list[int]} [lex, ley, rex, rey, nx, ny, lmx, lmy, rmx, rmy]
-        """
+        if total:
+            torch.save(self, '../modelfile/deepid.pkl')
+        else:
+            for patch, scale in self.__type:
+                key = 'classify_patch{}_scale{}'.format(patch, scale)
+                torch.save(self.features[key], '../modelfile/{}/features_deepid.pkl'.format(key))
+            torch.save(self.verifier, '../modelfile/verify_deepid.pkl')
 
-        pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
-    M = Verifier()
-    X = torch.randn(128, 27, 160*2)
-    y = M(X)
+    # M = Verifier()
+    # X = torch.randn(128, 27, 160*2)
+    # y = M(X)
+    M = DeepID('finetune')
+    X0 = torch.zeros(32, 2, 3, 3, 44, 33)
+    X1 = torch.zeros(32, 2, 3, 3, 25, 33)
+    X2 = torch.zeros(32, 2, 3, 3, 25, 33)
+    X3 = torch.zeros(32, 2, 3, 3, 25, 33)
+    X4 = torch.zeros(32, 2, 3, 3, 25, 25)
+    X5 = torch.zeros(32, 2, 3, 3, 25, 25)
+    X6 = torch.zeros(32, 2, 3, 3, 25, 25)
+    X7 = torch.zeros(32, 2, 3, 3, 25, 25)
+    X8 = torch.zeros(32, 2, 3, 3, 25, 25)
+    y = M(X0, X1, X2, X3, X4, X5, X6, X7, X8)

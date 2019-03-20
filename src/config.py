@@ -36,7 +36,7 @@ configer.gamma = 0.1
 
 configer.verify_weight = 0.1 
 
-configer.batchsize = 256
+configer.batchsize = 128
 configer.n_epoch = 60
 configer.valid_batch = 100
 

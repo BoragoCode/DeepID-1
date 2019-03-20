@@ -1,5 +1,5 @@
 from config import configer, updateConfiger
-from train import train_classify_only, train_verify, train_classify_with_similarity
+from train import train_classify_only, train_verify, train_classify_with_similarity, train_deepid_net
 from test import test_classify_only, test_verify, test_classify_with_similarity
 
 def main():
@@ -19,16 +19,16 @@ def main():
 
 
     ## finetune model using combined loss
-    for patch in range(9):
+    # for patch in range(9):
 
-        for scale in ['S', 'M', 'L']:
+    #     for scale in ['S', 'M', 'L']:
 
-            configer.patch = patch
-            configer.scale = scale
+    #         configer.patch = patch
+    #         configer.scale = scale
 
-            updateConfiger(configer)
+    #         updateConfiger(configer)
 
-            train_classify_with_similarity(configer)
+    #         train_classify_with_similarity(configer)
 
 
 
@@ -50,6 +50,11 @@ def main():
     # train_verify(configer)
     # test_verify(configer)
 
+
+
+
+    ## train whole net
+    train_deepid_net(configer)
 
 
 if __name__ == "__main__":
