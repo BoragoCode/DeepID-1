@@ -22,7 +22,7 @@ face verification
     ![patches](/images/patches.png)
 
 6. Run `gen_verify_pairs()` to generate pair samples, saved as `lfw_verify/lfw_verify_{train/valid/test}.txt`;
-7. Run `gen_classify_similarity_pairs()` to generate pair samples, saved as `data/lfw_similarity_verify/lfw_classify_similarity_{0~8}_{train/valid/test}.txt`;
+~~7. Run `gen_classify_similarity_pairs()` to generate pair samples, saved as `data/lfw_similarity_verify/lfw_classify_similarity_{0~8}_{train/valid/test}.txt`;~~
 8. Run `gen_deepid_pairs_samples()` to generate pair samples for the whole net, saved as `data/lfw_deepid_pair/lfw_deepid_pair_{train/valid/test}/txt`
 
 ```
@@ -60,47 +60,53 @@ face verification
 
 ## Models
 1. Classify model
-    1. Combined with `features` and `classifiers`;
-    2. `features` contains `convolution layers` and a `connected later`;
-    3. the output of `maxpool3` and `conv4` will be used in verification;
+    1. Consists of `features` and `classifiers`;
+    2. `features` is composed of `convolution layers` and a `connected later`;
+    3. the output of `maxpool3` and `conv4` will be used to generate features for verification;
 
     ![classifier_model](/images/classifier_model.png)
 
 2. Verify model
-    1. Combined with `features` and `classifiers`;
-    2. `features` is combined with `features` of `Classify model` and a `locally-connected layer`;
+    1. Consists of `features` and `classifiers`;
+    2. `features` is composed of Classify models' feature modules and a `locally-connected layer`;
     3. `classifiers` contains a `fully-connected layer`
 
     ![verifier_model](/images/verifier_model.png)
 
+3. DeepID mode
+    The whole model is composed of 27 Classify models' feature modules and 1 verify model.
+
 ## Loss
-1. Classification loss(Cross Entropy)
-$$
-\text{loss}(x, class) = -\log\left(\frac{\exp(x[class])}{\sum_j \exp(x[j])}\right)
-                   = -x[class] + \log\left(\sum_j \exp(x[j])\right)
-$$
+1. Classification loss(Cross Entropy Loss)
+    $$
+    \text{loss}(x, class) = -\log\left(\frac{\exp(x[class])}{\sum_j \exp(x[j])}\right)
+                    = -x[class] + \log\left(\sum_j \exp(x[j])\right)
+    $$
     
-2. Verification loss(BCE)
-$$
-\ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \quad
-l_n = - w_n \left[ y_n \cdot \log x_n + (1 - y_n) \cdot \log (1 - x_n) \right]
-$$
+2. Verification loss(BCE Loss)
+    $$
+    \ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \quad
+    l_n = - w_n \left[ y_n \cdot \log x_n + (1 - y_n) \cdot \log (1 - x_n) \right]
+    $$
 
 3. Similarity loss, **Used to fine-tune the classification models.**
-$$
-\text{loss}(f_i, f_j, y_{ij}, \theta_{ve}) = 
-\begin{cases}
-    \frac{1}{2} ||f_i - f_j||_2^2 & if y_{ij} =  1 \\
-    \frac{1}{2} max(0, m-||f_i - f_j||_2)^2 & if y_{ij} = -1 
-\end{cases}
-$$
+    **However, it seems useless.**
+    $$
+    \text{loss}(f_i, f_j, y_{ij}, \theta_{ve}) = 
+    \begin{cases}
+        \frac{1}{2} ||f_i - f_j||_2^2 & if y_{ij} =  1 \\
+        \frac{1}{2} max(0, m-||f_i - f_j||_2)^2 & if y_{ij} = -1 
+    \end{cases}
+    $$
 
-where $m$ is the parameter to be learned.
+    where $m$ is the parameter to be learned.
 
 ## Details
 1. Train classify models first;
 2. After trainig the classify models, save features as `/data/lfw_classify/lfw_classify_{patch}.npy`;
 <!-- 3. Flip patches to generate more features; -->
+3. Train verify model using features.
+4. classify models' feature module + Verify model, set different learning rate.
 
 ## Reference
 1. [Deep Learning Face Representation from Predicting 10,000 Classes](https://ieeexplore.ieee.org/document/6909640?tp=&arnumber=6909640&refinements%3D4291944822%26sortType%3Ddesc_p_Publication_Year%26ranges%3D2014_2014_p_Publication_Year%26pageNumber%3D284%26rowsPerPage%3D100=).

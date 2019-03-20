@@ -506,6 +506,7 @@ def train_deepid_net(configer):
     metric = VerifyBinLoss()
     params = [{'params': features.parameters(), 'lr': configer.lrbase * 0.05}\
                             for features in model.features.values()]
+    # params = []
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)

@@ -31,13 +31,13 @@ configer.n_classes = 5749
 
 ## optimizer
 configer.lrbase = 0.001
-configer.stepsize = 40
+configer.stepsize = 120
 configer.gamma = 0.1
 
 configer.verify_weight = 0.1 
 
 configer.batchsize = 128
-configer.n_epoch = 60
+configer.n_epoch = 300
 configer.valid_batch = 100
 
 configer.cuda = is_available()
