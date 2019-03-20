@@ -23,6 +23,7 @@ face verification
 
 6. Run `gen_verify_pairs()` to generate pair samples, saved as `lfw_verify/lfw_verify_{train/valid/test}.txt`;
 7. Run `gen_classify_similarity_pairs()` to generate pair samples, saved as `data/lfw_similarity_verify/lfw_classify_similarity_{0~8}_{train/valid/test}.txt`;
+8. Run `gen_deepid_pairs_samples()` to generate pair samples for the whole net, saved as `data/lfw_deepid_pair/lfw_deepid_pair_{train/valid/test}/txt`
 
 ```
 \-- data
