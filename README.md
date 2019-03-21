@@ -13,17 +13,8 @@ face verification
 2. Extract `lfw-deepfunneled.tgz` to `data/`;
 3. Run `detect_lfw()` to detect faces, saved as `data/lfw_detect.txt`;
 4. Run `gen_labels()` to generate labels, saved as `data/lfw_labels.txt`;
-5. Run `gen_classify()` to generate patches, saved as `data/lfw_classify/lfw_classify_{0~8}.txt`;
-    1. Only generate 9x3 face patches: 9 positions, 3 scales;
-    2. scale is set as 0.85, 1.0, 1.15;
-    3. save features(9x3x160) when testing;
-        - 9 patches, 3 scales, 160 dimensions 
-
-    ![patches](/images/patches.png)
-
-6. Run `gen_verify_pairs()` to generate pair samples, saved as `lfw_verify/lfw_verify_{train/valid/test}.txt`;
-~~7. Run `gen_classify_similarity_pairs()` to generate pair samples, saved as `data/lfw_similarity_verify/lfw_classify_similarity_{0~8}_{train/valid/test}.txt`;~~
-8. Run `gen_deepid_pairs_samples()` to generate pair samples for the whole net, saved as `data/lfw_deepid_pair/lfw_deepid_pair_{train/valid/test}/txt`
+5. Run `gen_classify()` to generate classify dataset, saved as `data/lfw_classify/lfw_classify.txt`;
+6. Run `gen_classify_pairs()` to generate pair samples, saved as `data/lfw_classify_pairs/{train/valid/test}.txt`;
 
 ```
 \-- data
@@ -44,37 +35,89 @@ face verification
     |-- lfw_detect.txt                          # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5
     |-- lfw_labels.txt                          # name label
     \-- lfw_classify
-        |-- lfw_classify_{0~8}.txt              # filepath x1 y1 x2 y2 label
-    \-- lfw_verify
-        |-- lfw_verify_{train/valid/test}.txt   # index1, index2, label
-    \-- lfw_classify_similarity
-        |-- lfw_classify_similarity_{0~8}.txt   # filepath1 x11 y11 x21 y21 label1\n
-                                                # filepath2 x12 y12 x22 y22 label2
-    
-
-    
-    \-- features                                # features saved when testing classify models
-        |-- lfw_classify_{0~8}_scale{S,M,L}.npy
-
+        |-- lfw_classify.txt                    # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5 label
+    \-- lfw_classify_pairs
+        |-- {train/valid/test}.txt              # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5 label\n
+                                                # filepath x1 y1 x2 y2 xx1 yy1 xx2 yy2 xx3 yy3 xx4 yy4 xx5 yy5 label
 ```
 
+## Load Data
+1. ClassifyDataset(patch, scale)
+    - Generate patches according to given parameter.
+    - Returns one image and its label.
+
+2. ClassifyPairsDataset(patch, scale, mode)
+    - Generate patches according to given parameter.
+    - Returns two images and their labels.
+
+3. DeepIdDataset(mode)
+    - Generate patches.
+        - 9 positions
+        - 3 scales
+            set as `0.65, 1.0, 1.35`
+    - Returns 9 patches, each patch contains 3 scales.
+
+![patches](/images/patches.png)
+    
+
 ## Models
-1. Classify model
-    1. Consists of `features` and `classifiers`;
-    2. `features` is composed of `convolution layers` and a `connected later`;
+
+![classifier_model](/images/classifier_model.png)
+
+![verifier_model](/images/verifier_model.png)
+
+
+1. Features model
+    1. Consists of `conv1`, `conv2` and `features`;
+        - `convx` is composed of `convolution layers`
+        - `features` is a `fully connected later`
     3. the output of `maxpool3` and `conv4` will be used to generate features for verification;
 
-    ![classifier_model](/images/classifier_model.png)
+    ```
+    # input:    (batch, H, W, C(3))
+    # output:   (batch, 160)
+    ```
 
-2. Verify model
-    1. Consists of `features` and `classifiers`;
-    2. `features` is composed of Classify models' feature modules and a `locally-connected layer`;
-    3. `classifiers` contains a `fully-connected layer`
+2. Classifier model
+    Consists of `classifier`, which is a `connected later`;
 
-    ![verifier_model](/images/verifier_model.png)
+    ```
+    # input:    (batch, 160)
+    # output:   (batch, n_class)
+    ```
 
-3. DeepID mode
-    The whole model is composed of 27 Classify models' feature modules and 1 verify model.
+3. Model for classification
+    Composed of `Features model` and `Classifier model`.
+    
+    **We need to train a model for each patch, which means 27 classification models.**
+
+    ```
+    # input:    (batch, H, W, C(3))
+    # output:   (batch, n_class)
+    ```
+
+4. Verifier model
+    1. Consists of `features` and `classifier`;
+        - `features` is a dict
+            - the keys are `classify_patch{}_scale{}`
+            - the values are `locally connected layer`
+        - `classifier` is a `fully connected layer`
+
+    ```
+    # input:    (batch, n_patch(27), 160*2)
+    # output:   (batch)
+    ```
+
+3. DeepID model
+    Consists of 27 `Features models` and a `Verifier`;
+    - `Features models` are trained for classification task;
+
+    **We need to generate 27 patches to feed the model.**
+
+    ```
+    # input:    (batch, n_sample(2), n_scale(3), n_channel(3), H, W) x 9
+    # output:   (batch)
+    ```
 
 ## Loss
 1. Classification loss(Cross Entropy Loss)
@@ -102,11 +145,10 @@ face verification
     where $m$ is the parameter to be learned.
 
 ## Details
-1. Train classify models first;
-2. After trainig the classify models, save features as `/data/lfw_classify/lfw_classify_{patch}.npy`;
-<!-- 3. Flip patches to generate more features; -->
-3. Train verify model using features.
-4. classify models' feature module + Verify model, set different learning rate.
+1. Train 27 classify models first;
+<!-- 2. Flip patches to generate more features; -->
+2. We can set different learning rate to `DeepID` model's modules.
+    - e.g. set `Features` models' learning rate to 0.0
 
 ## Reference
 1. [Deep Learning Face Representation from Predicting 10,000 Classes](https://ieeexplore.ieee.org/document/6909640?tp=&arnumber=6909640&refinements%3D4291944822%26sortType%3Ddesc_p_Publication_Year%26ranges%3D2014_2014_p_Publication_Year%26pageNumber%3D284%26rowsPerPage%3D100=).
