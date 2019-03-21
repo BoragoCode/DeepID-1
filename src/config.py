@@ -19,14 +19,14 @@ configer.in_channels = 3
 configer.n_classes = 5749
 
 ## optimizer
-configer.lrbase = 0.001
-configer.stepsize = 80
+configer.lrbase = 0.0005
+configer.stepsize = 60
 configer.gamma = 0.1
 
 configer.verify_weight = 0.1 
 
 configer.batchsize = 128
-configer.n_epoch = 200
+configer.n_epoch = 150
 configer.valid_batch = 100
 
 configer.cuda = is_available()
