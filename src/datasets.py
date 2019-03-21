@@ -91,7 +91,7 @@ def gen_patch(image, bbox, landmarks, patch_index, scale, ratio=1.0):
 
     else:
         dsize = (25, 25)
-        wa = int(w*scale_ratio); ha = wa                            # h: w = 1: 1
+        wa = int(w*scale_ratio*0.6); ha = wa                            # h: w = 1: 1
 
         if patch_index == 4:
             x_ct = xx1; y_ct = yy1                                  # 左眼为图片中心
@@ -374,16 +374,16 @@ class DeepIdDataset(Dataset):
 
 if __name__ == "__main__":
     
-    # for patch in range(9):
-    #     for scale in ['S', 'M', 'L']:
-    #         D = ClassifyDataset(patch, scale)
-    #         D[0]
+    for patch in range(9):
+        for scale in ['S', 'M', 'L']:
+            D = ClassifyDataset(patch, scale)
+            D[0]
     
     # for patch in range(9):
     #     for scale in ['S', 'M', 'L']:
     #         D = ClassifyPairs(patch, scale, mode='train')
     #         D[0]    
 
-    D = DeepIdDataset('train')
-    for i in range(5):
-        D[i]
+    # D = DeepIdDataset('train')
+    # for i in range(5):
+    #     D[i]
