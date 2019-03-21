@@ -6,7 +6,7 @@ def main():
     datadir = '/home/louishsu/Work/Codes/DeepID/data/lfw-deepfunneled'
 
     ## step 1. detect all images
-    # detect_lfw(datadir)
+    detect_lfw(datadir)
 
     ## step 2. generate label file
     gen_labels(datadir)

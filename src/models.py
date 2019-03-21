@@ -17,8 +17,23 @@ class Flatten(nn.Module):
         return x.view(x.shape[0], -1)
 
 
-class DeepIdFeatures(nn.Module):
 
+
+
+
+
+
+
+
+
+class DeepIdFeatures(nn.Module):
+    """ To generate DeepId features
+    
+    Attributes:
+        conv1:      {Module} convolution layers
+        conv2:      {Module} convolution layers
+        features:   {Module} linear layer
+    """
     def __init__(self, in_channels):
         super(DeepIdFeatures, self).__init__()
 
@@ -61,7 +76,7 @@ class DeepIdFeatures(nn.Module):
         return x
     
     def norm(self, x, mode='l2'):
-        """
+        """ Normalize feature vectors
         Params:
             x:      {tensor(N, 160)}
             mode:   {str}   'l1' ,'l2'
@@ -76,6 +91,11 @@ class DeepIdFeatures(nn.Module):
 
 
 class DeepIdClassifier(nn.Module):
+    """ classification
+    
+    Attributes:
+        classifier: {Module} linear layer
+    """
 
     def __init__(self, n_classes):
         super(DeepIdClassifier, self).__init__()
@@ -104,26 +124,13 @@ class DeepIdClassifier(nn.Module):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Classifier(nn.Module):
-
+    """ classification
+    
+    Attributes:
+        features:   {DeepIdFeatures}    
+        classifier: {DeepIdClassifier}  
+    """
     def __init__(self, in_channels, n_classes, modeldir):
         super(Classifier, self).__init__()
 
@@ -131,8 +138,6 @@ class Classifier(nn.Module):
         self.classifier = DeepIdClassifier(n_classes)
 
         self.modeldir = modeldir
-        self.featurespath = os.path.join(modeldir, 'features.pkl')
-        self.classifierpath = os.path.join(modeldir, 'classifier.pkl')
 
     def forward(self, x):
         """
@@ -146,39 +151,31 @@ class Classifier(nn.Module):
 
         return x, y
 
-    def save(self, finetune=False):
+    def save(self, prefix=None):
         
-        featurespath = self.featurespath
-        classifierpath = self.classifierpath
+        if not os.path.exists(self.modeldir):
+            os.makedirs(self.modeldir)
 
-        if finetune:
-            featurespath = featurespath.split('.')
-            featurespath[-2] += '_finetune'
-            featurespath = '.'.join(featurespath)
-            classifierpath = classifierpath.split('.')
-            classifierpath[-2] += '_finetune'
-            classifierpath = '.'.join(classifierpath)
+        if prefix is None:
+            modeldir = self.modeldir
+        else:
+            modeldir = prefix
 
-        torch.save(self.features, featurespath)
-        torch.save(self.classifier, classifierpath)
+        torch.save(self.features.state_dict(), os.path.join(modeldir, 'features.pkl'))
+        torch.save(self.classifier.state_dict(), os.path.join(modeldir, 'classifier.pkl'))
 
-        print("model saved at {} ! ".format(self.modeldir))
+        print("model saved at {} ! ".format(modeldir))
     
-    def load(self, finetune=False):
+    def load(self, prefix=None):
 
-        featurespath = self.featurespath
-        classifierpath = self.classifierpath
+        if prefix is None:
+            modeldir = self.modeldir
+        else:
+            modeldir = prefix
+        assert os.path.exists(modeldir), "model doesn't exist! "
 
-        if finetune:
-            featurespath = featurespath.split('.')
-            featurespath[-2] += '_finetune'
-            featurespath = '.'.join(featurespath)
-            classifierpath = classifierpath.split('.')
-            classifierpath[-2] += '_finetune'
-            classifierpath = '.'.join(classifierpath)
-
-        self.features = torch.load(featurespath)
-        self.classifier = torch.load(classifierpath)
+        self.features.load_state_dict(torch.load(os.path.join(modeldir, 'features.pkl')))
+        self.classifier.load_state_dict(torch.load(os.path.join(modeldir, 'classifier.pkl')))
 
         print("model loaded from {} ! ".format(self.modeldir))
 
@@ -186,15 +183,26 @@ class Classifier(nn.Module):
 class Verifier(nn.Module):
     """
     Attributes:
-        features:   {dict{'classify_patch{patch}_scale{scale}': nn.Sequential(nn.Linear(2*160, 80), nn.ReLU(True))}}
+        features:   {dict{'classify_patch{patch}_scale{scale}': 
+                                    nn.Sequential(
+                                        nn.Linear(2*160, 80), 
+                                        nn.ReLU(True),
+                                        )}}
+        classifier: {Sequential}
     """
+
     __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
 
     def __init__(self):
         super(Verifier, self).__init__()
         
         self.features = dict()
-        self._load_features()
+        for patch, scale in self.__type:
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            self.features[key] = nn.Sequential(
+                nn.Linear(2*160, 80),
+                nn.ReLU(True),
+            )
 
         self.classifier = nn.Sequential(
             nn.Linear(27*80, 4800),
@@ -204,14 +212,6 @@ class Verifier(nn.Module):
             nn.Sigmoid(),
         )
 
-    def _load_features(self):
-
-        for patch, scale in self.__type:
-            key = 'classify_patch{}_scale{}'.format(patch, scale)
-            self.features[key] = nn.Sequential(
-                nn.Linear(2*160, 80),
-                nn.ReLU(True),
-            )
 
     def forward(self, X):
         """
@@ -249,31 +249,6 @@ class Verifier(nn.Module):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class DeepID(nn.Module):
     """ Whole model
 
@@ -290,15 +265,16 @@ class DeepID(nn.Module):
     
     __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
 
-    def __init__(self, type=None):
-        """
-        Params:
-            type:   {str} None or `finetune`, `deepid`
-        """
+    def __init__(self, in_channels, prefix=None):
         super(DeepID, self).__init__()
 
-        self.type = type
-        self.load()
+        self.features = dict()
+        for patch, scale in self.__type:
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            self.features[key] = DeepIdFeatures(in_channels)
+        self.verifier = Verifier()
+
+        self.load(prefix)
 
     def forward(self, X0, X1, X2, X3, X4, X5, X6, X7, X8):
         """
@@ -328,67 +304,39 @@ class DeepID(nn.Module):
             features[:, patch*3 + idx_s] = torch.cat([X1, X2], dim=1)   # {tensor(N, 160x2)}
         
         y = self.verifier(features)
+
         return y
 
-    def load(self):
-        """
-        Params:
-            type:   {str} None or `finetune`, `deepid`
-        """
+    def load(self, prefix=None):
+        
+        if prefix is None:
+            prefix = '../modelfile/classify'
 
-        self.features = dict()
+        assert os.path.exists(prefix), "model doesn't exist! "
+
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
-            featurename = 'features' if self.type is None else 'features_{}'.format(self.type)
-            self.features[key] = torch.load('../modelfile/{}/{}.pkl'.format(key, featurename))
-        verifiername = 'verify' if self.type is None else 'verify_{}'.format(self.type)
-        self.verifier = torch.load('../modelfile/{}.pkl'.format(verifiername))
+            self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key)))
+        
+        if prefix is not None:
+            self.verifier.load_state_dict(torch.load('{}/verifier.pkl'.format(prefix)))
+        
+        print("Model loaded from {}! ".format(modeldir))
 
-    def save(self, total=False):
+    def save(self, prefix=None):
+        
+        if prefix is None:
+            prefix = '../modelfile/deepid'
 
-        if total:
-            torch.save(self, '../modelfile/deepid.pkl')
-        else:
-            for patch, scale in self.__type:
-                key = 'classify_patch{}_scale{}'.format(patch, scale)
-                torch.save(self.features[key], '../modelfile/{}/features_deepid.pkl'.format(key))
-            torch.save(self.verifier, '../modelfile/verify_deepid.pkl')
+        if not os.path.exists(prefix): os.mkdir(prefix)
 
-
-
-
-
-
-
-
-
+        for patch, scale in self.__type:
+            key = 'classify_patch{}_scale{}'.format(patch, scale)
+            torch.save(self.features[key].state_dict(), '{}/{}/features.pkl'.format(prefix, key))
+        
+        torch.save(self.verifier.state_dict(), '{}/verifier.pkl'.format(prefix))
+        
+        print("Model saved at {}! ".format(prefix))
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-    # M = Verifier()
-    # X = torch.randn(128, 27, 160*2)
-    # y = M(X)
-    M = DeepID('finetune')
-    X0 = torch.zeros(32, 2, 3, 3, 44, 33)
-    X1 = torch.zeros(32, 2, 3, 3, 25, 33)
-    X2 = torch.zeros(32, 2, 3, 3, 25, 33)
-    X3 = torch.zeros(32, 2, 3, 3, 25, 33)
-    X4 = torch.zeros(32, 2, 3, 3, 25, 25)
-    X5 = torch.zeros(32, 2, 3, 3, 25, 25)
-    X6 = torch.zeros(32, 2, 3, 3, 25, 25)
-    X7 = torch.zeros(32, 2, 3, 3, 25, 25)
-    X8 = torch.zeros(32, 2, 3, 3, 25, 25)
-    y = M(X0, X1, X2, X3, X4, X5, X6, X7, X8)
