@@ -127,8 +127,47 @@ def gen_patch(image, bbox, landmarks, patch_index, scale, ratio=1.0):
     return X
 
 
+def gen_patches(self, image, bbox, landmarks):
+    """
+    Params:
+        image:      {ndarray(H, W, 3)}
+        bbox:       {list[int]} x1, y1, x2, y2
+        landmarks:  {list[int]} xx1, xx2, xx3, xx4, xx5, yy1, yy2, yy3, yy4, yy5
+    Returns:
+        X0: {tensor(3, 3, 44, 33)}    patch0
+        X1: {tensor(3, 3, 25, 33)}    patch1
+        X2: {tensor(3, 3, 25, 33)}    patch2
+        X3: {tensor(3, 3, 25, 33)}    patch3
+        X4: {tensor(3, 3, 25, 25)}    patch4
+        X5: {tensor(3, 3, 25, 25)}    patch5
+        X6: {tensor(3, 3, 25, 25)}    patch6
+        X7: {tensor(3, 3, 25, 25)}    patch7
+        X8: {tensor(3, 3, 25, 25)}    patch8
+    """
+        
+    X0 = torch.zeros(3, 3, 44, 33)
+    X1 = torch.zeros(3, 3, 25, 33)
+    X2 = torch.zeros(3, 3, 25, 33)
+    X3 = torch.zeros(3, 3, 25, 33)
+    X4 = torch.zeros(3, 3, 25, 25)
+    X5 = torch.zeros(3, 3, 25, 25)
+    X6 = torch.zeros(3, 3, 25, 25)
+    X7 = torch.zeros(3, 3, 25, 25)
+    X8 = torch.zeros(3, 3, 25, 25)
 
-
+    scales = ['S', 'M', 'L']
+    for i in range(len(scales)):
+        X0[i] = gen_patch(image, bbox, landmarks, 0, scales[i])
+        X1[i] = gen_patch(image, bbox, landmarks, 1, scales[i])
+        X2[i] = gen_patch(image, bbox, landmarks, 2, scales[i])
+        X3[i] = gen_patch(image, bbox, landmarks, 3, scales[i])
+        X4[i] = gen_patch(image, bbox, landmarks, 4, scales[i])
+        X5[i] = gen_patch(image, bbox, landmarks, 5, scales[i])
+        X6[i] = gen_patch(image, bbox, landmarks, 6, scales[i])
+        X7[i] = gen_patch(image, bbox, landmarks, 7, scales[i])
+        X8[i] = gen_patch(image, bbox, landmarks, 8, scales[i])
+        
+    return X0, X1, X2, X3, X4, X5, X6, X7, X8
 
 
 
@@ -307,56 +346,14 @@ class DeepIdDataset(Dataset):
         X8 = torch.zeros(2, 3, 3, 25, 25)
 
         path, bbox, landmarks, label1 = pairs[0]
-        X0[0], X1[0], X2[0], X3[0], X4[0], X5[0], X6[0], X7[0], X8[0] = self.__gen_patches(cv2.imread(path, cv2.IMREAD_COLOR), bbox, landmarks)
+        X0[0], X1[0], X2[0], X3[0], X4[0], X5[0], X6[0], X7[0], X8[0] = gen_patches(cv2.imread(path, cv2.IMREAD_COLOR), bbox, landmarks)
 
         path, bbox, landmarks, label2 = pairs[1]
-        X0[1], X1[1], X2[1], X3[1], X4[1], X5[1], X6[1], X7[1], X8[1] = self.__gen_patches(cv2.imread(path, cv2.IMREAD_COLOR), bbox, landmarks)
+        X0[1], X1[1], X2[1], X3[1], X4[1], X5[1], X6[1], X7[1], X8[1] = gen_patches(cv2.imread(path, cv2.IMREAD_COLOR), bbox, landmarks)
 
         y = 1 if label1 == label2 else 0
 
         return X0, X1, X2, X3, X4, X5, X6, X7, X8, y
-        
-    def __gen_patches(self, image, bbox, landmarks):
-        """
-        Params:
-            image:      {ndarray(H, W, 3)}
-            bbox:       {list[int]} x1, y1, x2, y2
-            landmarks:  {list[int]} xx1, xx2, xx3, xx4, xx5, yy1, yy2, yy3, yy4, yy5
-        Returns:
-            X0: {tensor(3, 3, 44, 33)}    patch0
-            X1: {tensor(3, 3, 25, 33)}    patch1
-            X2: {tensor(3, 3, 25, 33)}    patch2
-            X3: {tensor(3, 3, 25, 33)}    patch3
-            X4: {tensor(3, 3, 25, 25)}    patch4
-            X5: {tensor(3, 3, 25, 25)}    patch5
-            X6: {tensor(3, 3, 25, 25)}    patch6
-            X7: {tensor(3, 3, 25, 25)}    patch7
-            X8: {tensor(3, 3, 25, 25)}    patch8
-        """
-        
-        X0 = torch.zeros(3, 3, 44, 33)
-        X1 = torch.zeros(3, 3, 25, 33)
-        X2 = torch.zeros(3, 3, 25, 33)
-        X3 = torch.zeros(3, 3, 25, 33)
-        X4 = torch.zeros(3, 3, 25, 25)
-        X5 = torch.zeros(3, 3, 25, 25)
-        X6 = torch.zeros(3, 3, 25, 25)
-        X7 = torch.zeros(3, 3, 25, 25)
-        X8 = torch.zeros(3, 3, 25, 25)
-
-        scales = ['S', 'M', 'L']
-        for i in range(len(scales)):
-            X0[i] = gen_patch(image, bbox, landmarks, 0, scales[i])
-            X1[i] = gen_patch(image, bbox, landmarks, 1, scales[i])
-            X2[i] = gen_patch(image, bbox, landmarks, 2, scales[i])
-            X3[i] = gen_patch(image, bbox, landmarks, 3, scales[i])
-            X4[i] = gen_patch(image, bbox, landmarks, 4, scales[i])
-            X5[i] = gen_patch(image, bbox, landmarks, 5, scales[i])
-            X6[i] = gen_patch(image, bbox, landmarks, 6, scales[i])
-            X7[i] = gen_patch(image, bbox, landmarks, 7, scales[i])
-            X8[i] = gen_patch(image, bbox, landmarks, 8, scales[i])
-        
-        return X0, X1, X2, X3, X4, X5, X6, X7, X8
 
     
 

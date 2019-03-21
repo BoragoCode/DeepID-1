@@ -31,7 +31,7 @@ def train_classify_only(configer):
 
     trainset    = ClassifyDataset(configer.patch, configer.scale)
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
-    model       = Classifier(configer.in_channels, configer.n_classes, '../modelfile/classify/{}'.format(configer.modelname))
+    model       = Classifier(configer.in_channels, configer.n_classes)
     if configer.cuda: model.cuda()
     metric      = IdentifyLoss()
     optimizer   = optim.Adam(model.parameters(), configer.lrbase)
@@ -85,7 +85,7 @@ def train_classify_only(configer):
                             i_epoch, configer.n_epoch, i_batch, len(trainset) // configer.batchsize, cur_batch, 
                             scheduler.get_lr()[-1], loss_i, acc_i)
                 print(print_log)
-                model.save()
+                model.save('../modelfile/classify/{}'.format(configer.modelname))
 
             logger.add_scalar('accuracy', acc_i,  cur_batch)
             logger.add_scalar('loss',     loss_i, cur_batch)
@@ -256,7 +256,8 @@ def train_deepid_net(configer):
 
     params = [{
                 'params': features.parameters(), 
-                'lr': configer.lrbase * 0.01,
+                # 'lr': configer.lrbase * 0.01,
+                'lr': 0.0,
                 }\
             for features in model.features.values()]
     params += [{'params': model.verifier.parameters()}]

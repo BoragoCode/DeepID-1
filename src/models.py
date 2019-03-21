@@ -131,13 +131,11 @@ class Classifier(nn.Module):
         features:   {DeepIdFeatures}    
         classifier: {DeepIdClassifier}  
     """
-    def __init__(self, in_channels, n_classes, modeldir):
+    def __init__(self, in_channels, n_classes):
         super(Classifier, self).__init__()
 
         self.features = DeepIdFeatures(in_channels)
         self.classifier = DeepIdClassifier(n_classes)
-
-        self.modeldir = modeldir
 
     def forward(self, x):
         """
@@ -151,33 +149,23 @@ class Classifier(nn.Module):
 
         return x, y
 
-    def save(self, prefix=None):
+    def save(self, prefix):
         
-        if not os.path.exists(self.modeldir):
-            os.makedirs(self.modeldir)
+        if not os.path.exists(prefix): os.makedirs(prefix)
 
-        if prefix is None:
-            modeldir = self.modeldir
-        else:
-            modeldir = prefix
+        torch.save(self.features.state_dict(), os.path.join(prefix, 'features.pkl'))
+        torch.save(self.classifier.state_dict(), os.path.join(prefix, 'classifier.pkl'))
 
-        torch.save(self.features.state_dict(), os.path.join(modeldir, 'features.pkl'))
-        torch.save(self.classifier.state_dict(), os.path.join(modeldir, 'classifier.pkl'))
-
-        print("model saved at {} ! ".format(modeldir))
+        print("model saved at {} ! ".format(prefix))
     
-    def load(self, prefix=None):
+    def load(self, prefix):
 
-        if prefix is None:
-            modeldir = self.modeldir
-        else:
-            modeldir = prefix
-        assert os.path.exists(modeldir), "model doesn't exist! "
+        assert os.path.exists(prefix), "model doesn't exist! "
 
-        self.features.load_state_dict(torch.load(os.path.join(modeldir, 'features.pkl')))
-        self.classifier.load_state_dict(torch.load(os.path.join(modeldir, 'classifier.pkl')))
+        self.features.load_state_dict(torch.load(os.path.join(prefix, 'features.pkl')))
+        self.classifier.load_state_dict(torch.load(os.path.join(prefix, 'classifier.pkl')))
 
-        print("model loaded from {} ! ".format(self.modeldir))
+        print("model loaded from {} ! ".format(prefix))
 
 
 class Verifier(nn.Module):
@@ -272,9 +260,8 @@ class DeepID(nn.Module):
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
             self.features[key] = DeepIdFeatures(in_channels)
+            self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key)))
         self.verifier = Verifier()
-
-        self.load(prefix)
 
     def forward(self, X0, X1, X2, X3, X4, X5, X6, X7, X8):
         """
@@ -307,32 +294,28 @@ class DeepID(nn.Module):
 
         return y
 
-    def load(self, prefix=None):
-        
-        if prefix is None:
-            prefix = '../modelfile/classify'
-
+    def load(self, prefix):
+            
         assert os.path.exists(prefix), "model doesn't exist! "
 
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
             self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key)))
         
-        if prefix is not None:
-            self.verifier.load_state_dict(torch.load('{}/verifier.pkl'.format(prefix)))
+        self.verifier.load_state_dict(torch.load('{}/verifier.pkl'.format(prefix)))
         
         print("Model loaded from {}! ".format(modeldir))
 
-    def save(self, prefix=None):
+    def save(self, prefix):
         
-        if prefix is None:
-            prefix = '../modelfile/deepid'
-
         if not os.path.exists(prefix): os.mkdir(prefix)
 
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
-            torch.save(self.features[key].state_dict(), '{}/{}/features.pkl'.format(prefix, key))
+            prefix_key = '{}/{}'.format(prefix, key)
+            if not os.path.exists(prefix_key): os.mkdir(prefix_key)
+
+            torch.save(self.features[key].state_dict(), '{}/features.pkl'.format(prefix_key))
         
         torch.save(self.verifier.state_dict(), '{}/verifier.pkl'.format(prefix))
         
