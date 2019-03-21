@@ -1,4 +1,4 @@
-logfile/
-modelfile/
-data/lfw_deepfunneled/
-*/__pycache__/
+logfile/*
+modelfile/*
+data/lfw-deepfunneled/*
+*.pyc
