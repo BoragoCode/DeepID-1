@@ -19,13 +19,13 @@ configer.in_channels = 3
 configer.n_classes = 5749
 
 ## optimizer
-configer.lrbase = 0.0005
+configer.lrbase = 0.005
 configer.stepsize = 60
 configer.gamma = 0.1
 
 configer.verify_weight = 0.1 
 
-configer.batchsize = 128
+configer.batchsize = 64
 configer.n_epoch = 150
 configer.valid_batch = 100
 
