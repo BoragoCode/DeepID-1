@@ -24,8 +24,8 @@ def train_deepid(configer):
 
 def main():
 
-    train_classifiers(configer)
-
+    # train_classifiers(configer)
+    train_deepid(configer)
 
 
 if __name__ == "__main__":

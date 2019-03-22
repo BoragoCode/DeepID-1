@@ -253,13 +253,15 @@ class DeepID(nn.Module):
     
     __type = [[i, s] for i in range(9) for s in ['S', 'M', 'L']]
 
-    def __init__(self, in_channels, prefix=None):
+    def __init__(self, in_channels, prefix):
         super(DeepID, self).__init__()
 
         self.features = dict()
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
             self.features[key] = DeepIdFeatures(in_channels)
+            state_dict = torch.load('{}/{}/features.pkl'.format(prefix, key))
+            self.features[key].features = nn.Linear(state_dict['features.weight'].shape[-1], 160)
             self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key)))
         self.verifier = Verifier()
 
@@ -304,7 +306,7 @@ class DeepID(nn.Module):
         
         self.verifier.load_state_dict(torch.load('{}/verifier.pkl'.format(prefix)))
         
-        print("Model loaded from {}! ".format(modeldir))
+        print("Model loaded from {}! ".format(prefix))
 
     def save(self, prefix):
         

@@ -127,7 +127,7 @@ def gen_patch(image, bbox, landmarks, patch_index, scale, ratio=1.0):
     return X
 
 
-def gen_patches(self, image, bbox, landmarks):
+def gen_patches(image, bbox, landmarks):
     """
     Params:
         image:      {ndarray(H, W, 3)}
@@ -374,10 +374,10 @@ class DeepIdDataset(Dataset):
 
 if __name__ == "__main__":
     
-    for patch in range(9):
-        for scale in ['S', 'M', 'L']:
-            D = ClassifyDataset(patch, scale)
-            D[0]
+    # for patch in range(9):
+    #     for scale in ['S', 'M', 'L']:
+    #         D = ClassifyDataset(patch, scale)
+    #         D[0]
     
     # for patch in range(9):
     #     for scale in ['S', 'M', 'L']:
@@ -385,5 +385,6 @@ if __name__ == "__main__":
     #         D[0]    
 
     # D = DeepIdDataset('train')
-    # for i in range(5):
-    #     D[i]
+    D = ClassifyDataset(1, 'S')
+    for i in range(10):
+        D[i]

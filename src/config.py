@@ -11,25 +11,36 @@ def updateConfiger(configer):
 
 configer = EasyDict()
 
-configer.patch = 0              # 0 ~ 8
+configer.patch = 2              # 0 ~ 8
 configer.scale = 'S'            # 'S', 'M', 'L'
 
 ## for classification
 configer.in_channels = 3
 configer.n_classes = 5749
+configer.cuda = is_available()
 
-## optimizer
+
+
+
+## optimizer: classification
+# configer.lrbase = 0.005
+# configer.stepsize = 50
+# configer.gamma = 0.1
+# configer.batchsize = 64
+# configer.n_epoch = 120
+# configer.valid_batch = 100
+
+## optimizer: deepid
 configer.lrbase = 0.005
-configer.stepsize = 50
+configer.stepsize = 60
 configer.gamma = 0.1
-
-configer.verify_weight = 0.1 
-
-configer.batchsize = 64
-configer.n_epoch = 120
+configer.batchsize = 32
+configer.n_epoch = 150
 configer.valid_batch = 100
 
-configer.cuda = is_available()
+
+
+
 
 
 configer.modelname = None

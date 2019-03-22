@@ -392,7 +392,7 @@ def train_deepid_net(configer):
 
         logger.add_scalars('loss',      {'train': loss_train, 'valid': loss_valid}, i_epoch)
         logger.add_scalars('accuracy',  {'train': acc_train,  'valid': acc_valid},  i_epoch)
-        logger.add_scalar('lr', scheduler.get_lr()[-1], i_epoch)
+        logger.add_scalar ('lr', scheduler.get_lr()[-1], i_epoch)
 
         print_log = "{} || Epoch: [{:3d}]/[{:3d}] || lr: {:.6f} || train | loss: {:.4f} acc: {:.2%} p: {:.4f} | valid | loss: {:.4f} acc: {:.2%} p: {:.4f}".\
             format(getTime(), i_epoch, configer.n_epoch, scheduler.get_lr()[-1], 
