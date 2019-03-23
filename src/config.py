@@ -31,11 +31,11 @@ configer.cuda = is_available()
 # configer.valid_batch = 100
 
 ## optimizer: deepid
-configer.lrbase = 0.005
-configer.stepsize = 60
+configer.lrbase = 0.001
+configer.stepsize = 100
 configer.gamma = 0.1
-configer.batchsize = 32
-configer.n_epoch = 150
+configer.batchsize = 64
+configer.n_epoch = 250
 configer.valid_batch = 100
 
 

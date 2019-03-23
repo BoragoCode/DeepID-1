@@ -251,20 +251,20 @@ def train_deepid_net(configer):
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
     validset = DeepIdDataset('valid')
     validloader = DataLoader(validset, configer.batchsize, shuffle=False)
-    model = DeepID(configer.in_channels, prefix='../modelfile/classify')
+    model = DeepID(configer.in_channels, prefix='../modelfile/deepid')
     metric = VerifyBinLoss()
 
     params = [{
                 'params': features.parameters(), 
-                # 'lr': configer.lrbase * 0.01,
-                'lr': 0.0,
+                'lr': configer.lrbase * 0.01,
+                # 'lr': 0.0,
                 }\
             for features in model.features.values()]
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
-    logger      = iniLogger('../logfile/deepid')
+    logger      = iniLogger('../logfile/deepid_train_features')
 
 
 
@@ -402,6 +402,6 @@ def train_deepid_net(configer):
         
         if loss_valid < loss_valid_last:
             loss_valid_last = loss_valid
-            model.save(prefix='../modelfile/deepid')
+            model.save(prefix='../modelfile/deepid_train_features')
         
         print('=====================================================================================================')

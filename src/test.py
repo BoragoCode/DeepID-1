@@ -58,7 +58,7 @@ def test_deepid_net(configer):
 
         ## log
         print_log = "{} || Batch: [{:3d}]/[{:3d}] || loss_i: {:.4f} acc_i: {:.2%} p: {:.4f}".\
-            format(getTime(), i_batch, len(trainset) // configer.batchsize, loss_i, acc_i, torch.exp(-loss_i))
+            format(getTime(), i_batch, len(testset) // configer.batchsize, loss_i, acc_i, torch.exp(-loss_i))
         print(print_log)
 
         ## save
