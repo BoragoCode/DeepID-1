@@ -148,7 +148,9 @@ face verification
 1. Train 27 classify models first;
 <!-- 2. Flip patches to generate more features; -->
 2. We can set different learning rate to `DeepID` model's modules.
-    - e.g. set `Features` models' learning rate to 0.0
+    1. set `Features` models' learning rate to 0.0
+        **However, accuracy of testing is 42.79%. :-(**
+    2. set lr to 0.01
 
 ## Reference
 1. [Deep Learning Face Representation from Predicting 10,000 Classes](https://ieeexplore.ieee.org/document/6909640?tp=&arnumber=6909640&refinements%3D4291944822%26sortType%3Ddesc_p_Publication_Year%26ranges%3D2014_2014_p_Publication_Year%26pageNumber%3D284%26rowsPerPage%3D100=).
