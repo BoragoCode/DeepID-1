@@ -5,8 +5,8 @@ from easydict import EasyDict
 def updateConfiger(configer):
 
     configer.modelname = 'classify_patch{}_scale{}'.format(configer.patch, configer.scale)
-    configer.modeldir  = '../modelfile/classify/{}'.format(configer.modelname)
-    configer.logdir    = '../logfile/classify/{}'.format(configer.modelname)
+    configer.modeldir  = '../modelfile/celeba_classify/{}'.format(configer.modelname)
+    configer.logdir    = '../logfile/celeba_classify/{}'.format(configer.modelname)
 
 
 configer = EasyDict()
@@ -16,7 +16,8 @@ configer.scale = 'S'            # 'S', 'M', 'L'
 
 ## for classification
 configer.in_channels = 3
-configer.n_classes = 5749
+# configer.n_classes = 5749         # lfw
+configer.n_classes = 10177          # celeba
 configer.cuda = is_available()
 
 
@@ -29,6 +30,7 @@ configer.cuda = is_available()
 # configer.batchsize = 64
 # configer.n_epoch = 120
 # configer.valid_batch = 100
+
 
 ## optimizer: deepid
 configer.lrbase = 0.001

@@ -16,7 +16,9 @@ def test_deepid_net(configer):
 
     testset = DeepIdDataset('test')
     testloader = DataLoader(testset, configer.batchsize, shuffle=False)
-    model = DeepID(configer.in_channels, prefix='../modelfile/classify')
+    model = DeepID(configer.in_channels, prefix='../modelfile/deepid_lr_0.00')
+    model.load('../modelfile/deepid_lr_0.00')
+    # model.load('../modelfile/deepid_lr_0.01')
     if configer.cuda: model.cuda()
     metric = VerifyBinLoss()
 

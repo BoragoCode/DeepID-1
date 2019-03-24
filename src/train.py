@@ -85,7 +85,7 @@ def train_classify_only(configer):
                             i_epoch, configer.n_epoch, i_batch, len(trainset) // configer.batchsize, cur_batch, 
                             scheduler.get_lr()[-1], loss_i, acc_i)
                 print(print_log)
-                model.save('../modelfile/classify/{}'.format(configer.modelname))
+                model.save('../modelfile/celeba_classify/{}'.format(configer.modelname))
 
             logger.add_scalar('accuracy', acc_i,  cur_batch)
             logger.add_scalar('loss',     loss_i, cur_batch)
@@ -251,7 +251,7 @@ def train_deepid_net(configer):
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
     validset = DeepIdDataset('valid')
     validloader = DataLoader(validset, configer.batchsize, shuffle=False)
-    model = DeepID(configer.in_channels, prefix='../modelfile/deepid')
+    model = DeepID(configer.in_channels, prefix='../modelfile/classify')
     metric = VerifyBinLoss()
 
     params = [{
@@ -264,7 +264,7 @@ def train_deepid_net(configer):
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
-    logger      = iniLogger('../logfile/deepid_train_features')
+    logger      = iniLogger('../logfile/deepid_lr_0.01')
 
 
 
@@ -402,6 +402,6 @@ def train_deepid_net(configer):
         
         if loss_valid < loss_valid_last:
             loss_valid_last = loss_valid
-            model.save(prefix='../modelfile/deepid_train_features')
+            model.save(prefix='../modelfile/deepid_lr_0.01')
         
         print('=====================================================================================================')
