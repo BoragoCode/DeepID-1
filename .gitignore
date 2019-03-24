@@ -1,4 +1,5 @@
 logfile/*
 modelfile/*
 data/lfw-deepfunneled/*
+data/img_align_celeba_png.7z/*
 *.pyc
