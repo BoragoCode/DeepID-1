@@ -1,4 +1,5 @@
 import os
+import cv2
 from os.path import join
 import time
 import numpy as np
@@ -84,10 +85,10 @@ def detect_celeba(datadir):
 
         imgname = '{:06d}.png'.format(i_image)
         imgpath = '{}/{}'.format(datadir, imgname)
-        image = Image.open(imgpath)
+        # image = Image.open(imgpath)
+        image = cv2.imread(imgpath, cv2.IMREAD_COLOR)
 
         try:
-            image = np.array(image)
             bbox, landmark = detect(image)
             
         except EOFError:
