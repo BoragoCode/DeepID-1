@@ -70,7 +70,7 @@ def gen_classify_celeba(datadir):
     labels_txt =  os.path.join('/'.join(datadir.split('/')[:-1]), 'Anno/identity_CelebA.txt')
     with open(labels_txt, 'r') as f:
         list_img_label = f.readlines()
-    dict_path_label = {'{}/{}'.format(datadir, img_label.strip().split(' ')[0]): int(img_label.strip().split(' ')[1]) \
+    dict_path_label = {'{}/{}'.format(datadir, img_label.strip().split(' ')[0].split('.')[0] + '.png'): int(img_label.strip().split(' ')[1]) \
                         for img_label in list_img_label}
     dict_path_label = {path: label for path, label in dict_path_label.items() if label <= 8000}
 
@@ -217,7 +217,7 @@ def gen_classify_pairs_celeba(datadir):
     labels_txt =  os.path.join('/'.join(datadir.split('/')[:-1]), 'Anno/identity_CelebA.txt')
     with open(labels_txt, 'r') as f:
         list_img_label = f.readlines()
-    dict_path_label = {'{}/{}'.format(datadir, img_label.strip().split(' ')[0]): int(img_label.strip().split(' ')[1]) \
+    dict_path_label = {'{}/{}'.format(datadir, img_label.strip().split(' ')[0].split('.')[0] + '.png'): int(img_label.strip().split(' ')[1]) \
                         for img_label in list_img_label}
     dict_path_label = {path: label for path, label in dict_path_label.items() if label > 8000}
 
@@ -225,6 +225,7 @@ def gen_classify_pairs_celeba(datadir):
     dict_label_pathlist = {label: [] for label in list(set(dict_path_label.values()))}
     for filepath, label in dict_path_label.items():
         dict_label_pathlist[label] += [filepath]
+    list_label = list(dict_label_pathlist.keys())
     
     ## 统计数量
     n_file  = len(dict_path_label)
@@ -236,18 +237,25 @@ def gen_classify_pairs_celeba(datadir):
 
     ## 训练集
     n_train = 10000
+    n_pos, n_neg = 0, 0
     train_txt = os.path.join(classify_dir, 'train.txt')
     ftrain = open(train_txt, 'w')
     for i_train in range(n_train):
-        if np.random.randn(1) > 0.5:
+        if np.random.rand(1) > 0.5:
             ### 正样本: 同类标签随机选取两个
-            pathlist = random.sample(dict_label_pathlist, 1)
+            label = random.sample(list_label, 1)[0]
+            pathlist = dict_label_pathlist[label]
+            if len(pathlist) < 2: continue
             path1, path2 = random.sample(pathlist, 2)
+            n_pos += 1
         else:
             ### 负样本
-            pathlist1, pathlist2 = random.sample(dict_label_pathlist, 2)
-            path1 = random.sample(pathlist1, 1)
-            path2 = random.sample(pathlist2, 1)
+            label1, label2 = random.sample(list_label, 2)
+            pathlist1 = dict_label_pathlist[label1]
+            pathlist2 = dict_label_pathlist[label2]
+            path1 = random.sample(pathlist1, 1)[0]
+            path2 = random.sample(pathlist2, 1)[0]
+            n_neg += 1
         
         if (path1 not in dict_filepath_detect.keys()) or (path2 not in dict_filepath_detect.keys()): continue
 
@@ -261,18 +269,25 @@ def gen_classify_pairs_celeba(datadir):
 
     ## 验证集
     n_valid = 3000
+    n_pos, n_neg = 0, 0
     valid_txt = os.path.join(classify_dir, 'valid.txt')
     fvalid = open(valid_txt, 'w')
     for i_valid in range(n_valid):
-        if np.random.randn(1) > 0.5:
+        if np.random.rand(1) > 0.5:
             ### 正样本: 同类标签随机选取两个
-            pathlist = random.sample(dict_label_pathlist, 1)
+            label = random.sample(list_label, 1)[0]
+            pathlist = dict_label_pathlist[label]
+            if len(pathlist) < 2: continue
             path1, path2 = random.sample(pathlist, 2)
+            n_pos += 1
         else:
-            ### 负样本: 不同标签选取两个
-            pathlist1, pathlist2 = random.sample(dict_label_pathlist, 2)
-            path1 = random.sample(pathlist1, 1)
-            path2 = random.sample(pathlist2, 1)
+            ### 负样本
+            label1, label2 = random.sample(list_label, 2)
+            pathlist1 = dict_label_pathlist[label1]
+            pathlist2 = dict_label_pathlist[label2]
+            path1 = random.sample(pathlist1, 1)[0]
+            path2 = random.sample(pathlist2, 1)[0]
+            n_neg += 1
         
         if (path1 not in dict_filepath_detect.keys()) or (path2 not in dict_filepath_detect.keys()): continue
         
@@ -286,18 +301,25 @@ def gen_classify_pairs_celeba(datadir):
 
     ## 测试集
     n_test = 1500
+    n_pos, n_neg = 0, 0
     test_txt = os.path.join(classify_dir, 'test.txt')
     ftest  = open(test_txt, 'w')
     for i_test in range(n_test):
-        if np.random.randn(1) > 0.5:
+        if np.random.rand(1) > 0.5:
             ### 正样本: 同类标签随机选取两个
-            pathlist = random.sample(dict_label_pathlist, 1)
+            label = random.sample(list_label, 1)[0]
+            pathlist = dict_label_pathlist[label]
+            if len(pathlist) < 2: continue
             path1, path2 = random.sample(pathlist, 2)
+            n_pos += 1
         else:
-            ### 负样本: 不同标签选取两个
-            pathlist1, pathlist2 = random.sample(dict_label_pathlist, 2)
-            path1 = random.sample(pathlist1, 1)
-            path2 = random.sample(pathlist2, 1)
+            ### 负样本
+            label1, label2 = random.sample(list_label, 2)
+            pathlist1 = dict_label_pathlist[label1]
+            pathlist2 = dict_label_pathlist[label2]
+            path1 = random.sample(pathlist1, 1)[0]
+            path2 = random.sample(pathlist2, 1)[0]
+            n_neg += 1
         
         if (path1 not in dict_filepath_detect.keys()) or (path2 not in dict_filepath_detect.keys()): continue
         
