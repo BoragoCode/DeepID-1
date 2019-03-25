@@ -67,8 +67,8 @@ def gen_patch(image, bbox, landmarks, patch_index, scale, ratio=1.0):
     ## 尺度
     dict_scale_ratio = {
         'S': 0.65,
-        'M': 1.0,
-        'L': 1.35,
+        'M': 0.90,
+        'L': 1.15,
     }
     scale_ratio = dict_scale_ratio[scale]
 
@@ -192,7 +192,7 @@ class ClassifyDataset(Dataset):
         else:
             self.dsize = (25, 25)
 
-        with open('../data/lfw_classify/lfw_classify.txt', 'r') as f:
+        with open('../data/celeba_classify/celeba_classify.txt', 'r') as f:
             samples = f.readlines()
 
         self.samples_list = []
@@ -203,7 +203,7 @@ class ClassifyDataset(Dataset):
             x1, y1, x2, y2, xx1, xx2, xx3, xx4, xx5, yy1, yy2, yy3, yy4, yy5, label = [int(i) for i in sample[1: ]]
             bbox = [x1, y1, x2, y2]
             landmarks = [xx1, xx2, xx3, xx4, xx5, yy1, yy2, yy3, yy4, yy5]
-            sample = [path, bbox, landmarks, label]
+            sample = [path, bbox, landmarks, label-1]
             self.samples_list += [sample]
         
     def __getitem__(self, index):
@@ -233,7 +233,7 @@ class ClassifyPairsDataset(Dataset):
         else:
             self.dsize = (25, 25)
 
-        with open('../data/lfw_classify_pairs/{}.txt'.format(mode), 'r') as f:
+        with open('../data/celeba_classify_pairs/{}.txt'.format(mode), 'r') as f:
             pairs = f.readlines()
         self.pairs = [[self.__parse(pairs[i]), self.__parse(pairs[i+1])] for i in range(len(pairs)//2)]
 
@@ -374,10 +374,10 @@ class DeepIdDataset(Dataset):
 
 if __name__ == "__main__":
     
-    # for patch in range(9):
-    #     for scale in ['S', 'M', 'L']:
-    #         D = ClassifyDataset(patch, scale)
-    #         D[0]
+    for patch in range(9):
+        for scale in ['S', 'M', 'L']:
+            D = ClassifyDataset(patch, scale)
+            D[0]
     
     # for patch in range(9):
     #     for scale in ['S', 'M', 'L']:
@@ -385,6 +385,6 @@ if __name__ == "__main__":
     #         D[0]    
 
     # D = DeepIdDataset('train')
-    D = ClassifyDataset(1, 'S')
-    for i in range(10):
-        D[i]
+    # D = ClassifyDataset(1, 'S')
+    # for i in range(10):
+    #     D[i]

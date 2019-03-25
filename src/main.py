@@ -25,8 +25,9 @@ def train_deepid(configer):
 def main():
 
     # train_classifiers(configer)
+    train_classify_only(configer)
 
-    train_deepid(configer)
+    # train_deepid(configer)
     # test_deepid_net(configer)
 
 

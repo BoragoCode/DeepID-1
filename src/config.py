@@ -11,7 +11,7 @@ def updateConfiger(configer):
 
 configer = EasyDict()
 
-configer.patch = 2              # 0 ~ 8
+configer.patch = 0              # 0 ~ 8
 configer.scale = 'S'            # 'S', 'M', 'L'
 
 ## for classification
@@ -24,21 +24,21 @@ configer.cuda = is_available()
 
 
 ## optimizer: classification
-# configer.lrbase = 0.005
-# configer.stepsize = 50
-# configer.gamma = 0.1
-# configer.batchsize = 64
-# configer.n_epoch = 120
-# configer.valid_batch = 100
+configer.lrbase = 0.001
+configer.stepsize = 50
+configer.gamma = 0.1
+configer.batchsize = 256
+configer.n_epoch = 120
+configer.valid_batch = 100
 
 
 ## optimizer: deepid
-configer.lrbase = 0.001
-configer.stepsize = 100
-configer.gamma = 0.1
-configer.batchsize = 64
-configer.n_epoch = 250
-configer.valid_batch = 100
+# configer.lrbase = 0.001
+# configer.stepsize = 100
+# configer.gamma = 0.1
+# configer.batchsize = 64
+# configer.n_epoch = 250
+# configer.valid_batch = 100
 
 
 
