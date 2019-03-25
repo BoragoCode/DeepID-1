@@ -103,6 +103,7 @@ def train_classify_similarity(configer, finetune=False):
     validloader = DataLoader(validset, configer.batchszie, shuffle=False)
     model       = Classifier(configer.in_channels, configer.n_classes, '../modelfile/classify_similarity/{}'.format(configer.modelname))
     if finetune: model.load(prefix='../modelfile/classify/{}'.format(configer.modelname))
+    if configer.cuda: model.cuda()
     metric      = TotalLoss(k=0.01)
     optimizer   = optim.Adam(model.parameters(), configer.lrbase)
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
@@ -252,6 +253,7 @@ def train_deepid_net(configer):
     validset = DeepIdDataset('valid')
     validloader = DataLoader(validset, configer.batchsize, shuffle=False)
     model = DeepID(configer.in_channels, prefix='../modelfile/classify')
+    if configer.cuda: model.cuda()
     metric = VerifyBinLoss()
 
     params = [{
