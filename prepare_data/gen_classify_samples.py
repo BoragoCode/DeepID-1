@@ -82,6 +82,7 @@ def gen_classify_celeba(datadir):
 
     ## 生成样本
     for filepath, label in dict_path_label.items():
+        if filepath not in dict_filepath_detect.keys(): continue
 
         detect = dict_filepath_detect[filepath]
         sample = '{} {} {}\n'.format(filepath, detect, label)
@@ -248,6 +249,8 @@ def gen_classify_pairs_celeba(datadir):
             path1 = random.sample(pathlist1, 1)
             path2 = random.sample(pathlist2, 1)
         
+        if (path1 not in dict_filepath_detect.keys()) or (path2 not in dict_filepath_detect.keys()): continue
+
         label1 = dict_path_label[path1]
         label2 = dict_path_label[path2]
         detect1 = dict_filepath_detect[path1]
@@ -271,6 +274,8 @@ def gen_classify_pairs_celeba(datadir):
             path1 = random.sample(pathlist1, 1)
             path2 = random.sample(pathlist2, 1)
         
+        if (path1 not in dict_filepath_detect.keys()) or (path2 not in dict_filepath_detect.keys()): continue
+        
         label1 = dict_path_label[path1]
         label2 = dict_path_label[path2]
         detect1 = dict_filepath_detect[path1]
@@ -293,6 +298,8 @@ def gen_classify_pairs_celeba(datadir):
             pathlist1, pathlist2 = random.sample(dict_label_pathlist, 2)
             path1 = random.sample(pathlist1, 1)
             path2 = random.sample(pathlist2, 1)
+        
+        if (path1 not in dict_filepath_detect.keys()) or (path2 not in dict_filepath_detect.keys()): continue
         
         label1 = dict_path_label[path1]
         label2 = dict_path_label[path2]
