@@ -68,7 +68,7 @@ class DeepIdFeatures(nn.Module):
         x  = torch.cat([x1, x2], 1)
 
         if self.features is None:
-            self.features = nn.Linear(x.shape[-1], 160)
+            self.features = nn.Linear(x.shape[-1], 160).cuda()
         x = self.features(x)
         
         x = self.norm(x)
