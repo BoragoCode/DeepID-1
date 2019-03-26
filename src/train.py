@@ -32,7 +32,6 @@ def train_classify_only(configer):
     trainset    = ClassifyDataset(configer.patch, configer.scale)
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
     model       = Classifier(configer.in_channels, configer.n_classes)
-    if os.path.exists(configer.modeldir): model.load(configer.modeldir)
     if configer.cuda: model.cuda()
     metric      = IdentifyLoss()
     optimizer   = optim.Adam(model.parameters(), configer.lrbase)
