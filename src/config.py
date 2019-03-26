@@ -17,7 +17,7 @@ configer.scale = 'S'            # 'S', 'M', 'L'
 ## for classification
 configer.in_channels = 3
 # configer.n_classes = 5749         # lfw
-configer.n_classes = 10177          # celeba
+configer.n_classes = 8000          # celeba
 configer.cuda = is_available()
 # configer.cuda = False
 
