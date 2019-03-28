@@ -71,7 +71,7 @@ class DeepIdFeatures(nn.Module):
             self.features = nn.Linear(x.shape[-1], 160).cuda()
         x = self.features(x)
         
-        x = self.norm(x)
+        # x = self.norm(x)
 
         return x
     
