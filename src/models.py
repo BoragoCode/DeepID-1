@@ -295,7 +295,8 @@ class DeepID(nn.Module):
             X1 = self.features[key](X[:, 0])    # {tensor(N, 3, h, w)} ---> {tensor(N, 160)}
             X2 = self.features[key](X[:, 1])    # {tensor(N, 3, h, w)} ---> {tensor(N, 160)}
             features[:, patch*3 + idx_s] = torch.cat([X1, X2], dim=1)   # {tensor(N, 160x2)}
-        
+            
+        if torch.cuda.is_available(): features = features.cuda()
         y = self.verifier(features)
 
         return y
