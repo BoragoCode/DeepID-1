@@ -288,6 +288,8 @@ class DeepID(nn.Module):
         patches = [X0, X1, X2, X3, X4, X5, X6, X7, X8]
         
         features = torch.zeros(X0.shape[0], 27, 160*2)
+        if torch.cuda.is_available(): features = features.cuda()
+            
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
             idx_s = scales.index(scale)
@@ -295,8 +297,6 @@ class DeepID(nn.Module):
             X1 = self.features[key](X[:, 0])    # {tensor(N, 3, h, w)} ---> {tensor(N, 160)}
             X2 = self.features[key](X[:, 1])    # {tensor(N, 3, h, w)} ---> {tensor(N, 160)}
             features[:, patch*3 + idx_s] = torch.cat([X1, X2], dim=1)   # {tensor(N, 160x2)}
-            
-        if torch.cuda.is_available(): features = features.cuda()
         y = self.verifier(features)
 
         return y
