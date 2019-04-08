@@ -258,14 +258,14 @@ def train_deepid_net(configer):
 
     params = [{
                 'params': features.parameters(), 
-                'lr': configer.lrbase * 0.00,
+                'lr': configer.lrbase * 0.01,
                 }\
             for features in model.features.values()]
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
-    logger      = iniLogger('../logfile/deepid_lr_0.00')
+    logger      = iniLogger('../logfile/deepid_lr_0.01')
 
 
 

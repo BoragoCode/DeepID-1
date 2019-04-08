@@ -25,21 +25,21 @@ configer.cuda = is_available()
 
 
 ## optimizer: classification
-configer.lrbase = 0.0005
-configer.stepsize = 120
-configer.gamma = 0.2
-configer.batchsize = 256
-configer.n_epoch = 200
-configer.valid_batch = 100
+# configer.lrbase = 0.0005
+# configer.stepsize = 120
+# configer.gamma = 0.2
+# configer.batchsize = 256
+# configer.n_epoch = 200
+# configer.valid_batch = 100
 
 
 ## optimizer: deepid
-# configer.lrbase = 0.001
-# configer.stepsize = 100
-# configer.gamma = 0.1
-# configer.batchsize = 64
-# configer.n_epoch = 250
-# configer.valid_batch = 100
+configer.lrbase = 0.001
+configer.stepsize = 30
+configer.gamma = 0.1
+configer.batchsize = 128
+configer.n_epoch = 50
+configer.valid_batch = 100
 
 
 

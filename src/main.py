@@ -28,7 +28,7 @@ def main():
     # train_classify_only(configer)
 
     train_deepid_net(configer)
-    # test_deepid_net(configer)
+    test_deepid_net(configer)
 
 
 if __name__ == "__main__":
