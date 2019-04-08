@@ -260,10 +260,14 @@ class DeepID(nn.Module):
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
             self.features[key] = DeepIdFeatures(in_channels)
-            state_dict = torch.load('{}/{}/features.pkl'.format(prefix, key), map_location='cpu' if not torch.cuda.is_available() else 'cuda:0')
+            state_dict = torch.load('{}/{}/features.pkl'.format(prefix, key), 
+                                    map_location='cpu' if not torch.cuda.is_available() else 'cuda:0')
             self.features[key].features = nn.Linear(state_dict['features.weight'].shape[-1], 160)
-            self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key), map_location='cpu' if not torch.cuda.is_available() else 'cuda:0'))
+            self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key), 
+                                                            map_location='cpu' if not torch.cuda.is_available() else 'cuda:0'))
+            if torch.cuda.is_available(): self.features[key].cuda()
         self.verifier = Verifier()
+        if torch.cuda.is_available(): self.verifier.cuda()
 
     def forward(self, X0, X1, X2, X3, X4, X5, X6, X7, X8):
         """
