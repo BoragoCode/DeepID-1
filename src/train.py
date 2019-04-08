@@ -258,14 +258,14 @@ def train_deepid_net(configer):
 
     params = [{
                 'params': features.parameters(), 
-                'lr': configer.lrbase * 0.01,
+                'lr': configer.lrbase * 1.0,
                 }\
             for features in model.features.values()]
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
-    logger      = iniLogger('../logfile/deepid_lr_0.01')
+    logger      = iniLogger('../logfile/deepid_lr_1.0')
 
 
 
@@ -403,6 +403,6 @@ def train_deepid_net(configer):
         
         if loss_valid < loss_valid_last:
             loss_valid_last = loss_valid
-            model.save(prefix='../modelfile/deepid_lr_0.01')
+            model.save(prefix='../modelfile/deepid_lr_1.0')
         
         print('=====================================================================================================')
