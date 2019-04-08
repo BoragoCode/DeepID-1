@@ -302,7 +302,7 @@ class DeepIdDataset(Dataset):
 
     def __init__(self, mode):
 
-        with open('../data/lfw_classify_pairs/{}.txt'.format(mode), 'r') as f:
+        with open('../data/celeba_classify_pairs/{}.txt'.format(mode), 'r') as f:
             pairs = f.readlines()
         self.pairs = [[self.__parse(pairs[i]), self.__parse(pairs[i+1])] for i in range(len(pairs)//2)]
 
@@ -374,17 +374,17 @@ class DeepIdDataset(Dataset):
 
 if __name__ == "__main__":
     
-    for patch in range(9):
-        for scale in ['S', 'M', 'L']:
-            D = ClassifyDataset(patch, scale)
-            D[0]
+    # for patch in range(9):
+    #     for scale in ['S', 'M', 'L']:
+    #         D = ClassifyDataset(patch, scale)
+    #         D[0]
     
     # for patch in range(9):
     #     for scale in ['S', 'M', 'L']:
     #         D = ClassifyPairs(patch, scale, mode='train')
     #         D[0]    
 
-    # D = DeepIdDataset('train')
+    D = DeepIdDataset('train')
     # D = ClassifyDataset(1, 'S')
-    # for i in range(10):
-    #     D[i]
+    for i in range(10):
+        D[i]
