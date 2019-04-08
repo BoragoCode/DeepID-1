@@ -7,7 +7,7 @@ def train_classifiers(configer):
 
     ## train 27 models! 
 
-    for patch in range(9):
+    for patch in range(3, 9):
 
         for scale in ['S', 'M', 'L']:
 
