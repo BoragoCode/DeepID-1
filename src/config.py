@@ -26,10 +26,10 @@ configer.cuda = is_available()
 
 ## optimizer: classification
 configer.lrbase = 0.0005
-configer.stepsize = 200
+configer.stepsize = 120
 configer.gamma = 0.2
 configer.batchsize = 256
-configer.n_epoch = 270
+configer.n_epoch = 200
 configer.valid_batch = 100
 
 
