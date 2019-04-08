@@ -260,7 +260,7 @@ class DeepID(nn.Module):
         for patch, scale in self.__type:
             key = 'classify_patch{}_scale{}'.format(patch, scale)
             self.features[key] = DeepIdFeatures(in_channels)
-            state_dict = torch.load('{}/{}/features.pkl'.format(prefix, key))
+            state_dict = torch.load('{}/{}/features.pkl'.format(prefix, key), map_location='cpu')
             self.features[key].features = nn.Linear(state_dict['features.weight'].shape[-1], 160)
             self.features[key].load_state_dict(torch.load('{}/{}/features.pkl'.format(prefix, key)))
         self.verifier = Verifier()

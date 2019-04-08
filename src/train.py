@@ -252,21 +252,20 @@ def train_deepid_net(configer):
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
     validset = DeepIdDataset('valid')
     validloader = DataLoader(validset, configer.batchsize, shuffle=False)
-    model = DeepID(configer.in_channels, prefix='../modelfile/classify')
+    model = DeepID(configer.in_channels, prefix='../modelfile/celeba_classify')
     if configer.cuda: model.cuda()
     metric = VerifyBinLoss()
 
     params = [{
                 'params': features.parameters(), 
-                'lr': configer.lrbase * 0.01,
-                # 'lr': 0.0,
+                'lr': configer.lrbase * 0.00,
                 }\
             for features in model.features.values()]
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
-    logger      = iniLogger('../logfile/deepid_lr_0.01')
+    logger      = iniLogger('../logfile/deepid_lr_0.00')
 
 
 
