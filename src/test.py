@@ -14,11 +14,11 @@ from models import Classifier, DeepID
 
 def test_deepid_net(configer):
 
-    testset = DeepIdDataset('test')
-    testloader = DataLoader(testset, configer.batchsize, shuffle=False)
-    model = DeepID(configer.in_channels, prefix='../modelfile/deepid_lr_1.0')
-    model.load('../modelfile/deepid_lr_1.0')
-    # model.load('../modelfile/deepid_lr_0.01')
+    testset = DeepIdDataset('test', database='celeba')
+    testloader = DataLoader(testset, configer.batchsize, shuffle=True)
+    model = DeepID(configer.in_channels, prefix='../modelfile/deepid_lr_{}'.format(configer.finetune_lr))
+    model.load('../modelfile/deepid_lr_{}'.format(configer.finetune_lr))
+
     if configer.cuda: model.cuda()
     metric = VerifyBinLoss()
 
@@ -57,6 +57,7 @@ def test_deepid_net(configer):
 
         ## calculate accuracy
         acc_i  = accuracy_bin(y_pred, y_true)
+        print("max: {}, min: {}".format(torch.max(y_pred), torch.min(y_pred)))
 
         ## log
         print_log = "{} || Batch: [{:3d}]/[{:3d}] || loss_i: {:.4f} acc_i: {:.2%} p: {:.4f}".\

@@ -117,7 +117,7 @@ def gen_classify_pairs(datadir):
 
 
     ## trainsets
-    train_txt = os.path.join('/'.join(datadir.split('/')[:-1]), 'view2', 'pairs.txt')
+    train_txt = os.path.join('/'.join(datadir.split('/')[:-1]), 'view1', 'pairsDevTrain.txt')
     with open(train_txt, 'r') as f:
         train_list = f.readlines()[1:]  # name index1 index2 or name1 index1 name2 index2
 
@@ -173,7 +173,7 @@ def gen_classify_pairs(datadir):
         
 
     ## testsets
-    test_txt = os.path.join('/'.join(datadir.split('/')[:-1]), 'view1', 'pairsDevTrain.txt')
+    test_txt = os.path.join('/'.join(datadir.split('/')[:-1]), 'view2', 'pairs.txt')
     with open(test_txt, 'r') as f:
         test_list = f.readlines()[1:]  # name index1 index2 or name1 index1 name2 index2
 

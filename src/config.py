@@ -37,6 +37,8 @@ configer.cuda = is_available()
 configer.lrbase = 0.001
 configer.stepsize = 30
 configer.gamma = 0.1
+configer.finetune_lr = 0.01
+
 configer.batchsize = 128
 configer.n_epoch = 50
 configer.valid_batch = 100

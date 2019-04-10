@@ -21,10 +21,10 @@ def main_celeba():
     datadir = '/home/louishsu/Work/Codes/DeepID/data/img_align_celeba_png'
 
     ## step 1. detect all images
-    # detect_celeba(datadir)
+    detect_celeba(datadir)
 
     ## step 3. generate classify data
-    # gen_classify_celeba(datadir)
+    gen_classify_celeba(datadir)
 
     ## step 4. generate classify pairs
     gen_classify_pairs_celeba(datadir)

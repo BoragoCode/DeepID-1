@@ -248,9 +248,9 @@ def train_classify_similarity(configer, finetune=False):
 # ------------------------------------------------------------------------------------------------------------
 def train_deepid_net(configer):
 
-    trainset = DeepIdDataset('train')
+    trainset = DeepIdDataset('train', database='celeba')
     trainloader = DataLoader(trainset, configer.batchsize, shuffle=True)
-    validset = DeepIdDataset('valid')
+    validset = DeepIdDataset('valid', database='celeba')
     validloader = DataLoader(validset, configer.batchsize, shuffle=False)
     model = DeepID(configer.in_channels, prefix='../modelfile/celeba_classify')
     if configer.cuda: model.cuda()
@@ -258,14 +258,14 @@ def train_deepid_net(configer):
 
     params = [{
                 'params': features.parameters(), 
-                'lr': configer.lrbase * 1.0,
+                'lr': configer.lrbase * configer.finetune_lr,
                 }\
             for features in model.features.values()]
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase,  betas=(0.9, 0.95), weight_decay=0.0005)
     
     scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
-    logger      = iniLogger('../logfile/deepid_lr_1.0')
+    logger      = iniLogger('../logfile/deepid_lr_{}'.format(configer.finetune_lr))
 
 
 
@@ -403,6 +403,6 @@ def train_deepid_net(configer):
         
         if loss_valid < loss_valid_last:
             loss_valid_last = loss_valid
-            model.save(prefix='../modelfile/deepid_lr_1.0')
+            model.save(prefix='../modelfile/deepid_lr_{}'.format(configer.finetune_lr))
         
         print('=====================================================================================================')
