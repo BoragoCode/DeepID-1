@@ -35,7 +35,7 @@ def train_classify_only(configer):
     if configer.cuda: model.cuda()
     metric      = IdentifyLoss()
     optimizer   = optim.Adam(model.parameters(), configer.lrbase)
-    scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
+    scheduler   = lr_scheduler.MultiStepLR(optimizer, configer.stepsize, configer.gamma)
     logger      = iniLogger(configer.logdir)
 
     cur_batch = 0
@@ -106,7 +106,7 @@ def train_classify_similarity(configer, finetune=False):
     if configer.cuda: model.cuda()
     metric      = TotalLoss(k=0.01)
     optimizer   = optim.Adam(model.parameters(), configer.lrbase)
-    scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
+    scheduler   = lr_scheduler.MultiStepLR(optimizer, configer.stepsize, configer.gamma)
     logger      = iniLogger(configer.logdir)
     
     elapsed_time = 0; total_time = 0
@@ -264,7 +264,7 @@ def train_deepid_net(configer):
     params += [{'params': model.verifier.parameters()}]
     optimizer   = optim.Adam(params, configer.lrbase, weight_decay=0.001)
     
-    scheduler   = lr_scheduler.StepLR(optimizer, configer.stepsize, configer.gamma)
+    scheduler   = lr_scheduler.MultiStepLR(optimizer, configer.stepsize, configer.gamma)
     logger      = iniLogger('../logfile/deepid_lr_{}'.format(configer.finetune_lr))
 
 
