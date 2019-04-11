@@ -236,7 +236,7 @@ def gen_classify_pairs_celeba(datadir):
     if not os.path.exists(classify_dir): os.mkdir(classify_dir)
 
     ## 训练集
-    n_train = 10000
+    n_train = 100000
     n_pos, n_neg = 0, 0
     train_txt = os.path.join(classify_dir, 'train.txt')
     ftrain = open(train_txt, 'w')
@@ -300,7 +300,7 @@ def gen_classify_pairs_celeba(datadir):
     fvalid.close()
 
     ## 测试集
-    n_test = 1500
+    n_test = 5000
     n_pos, n_neg = 0, 0
     test_txt = os.path.join(classify_dir, 'test.txt')
     ftest  = open(test_txt, 'w')
